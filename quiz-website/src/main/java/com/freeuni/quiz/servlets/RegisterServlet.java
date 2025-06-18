@@ -1,9 +1,6 @@
 package com.freeuni.quiz.servlets;
 
-import com.freeuni.quiz.DAO.UserDAO;
-import com.freeuni.quiz.util.PasswordUtil;
-import com.freeuni.quiz.bean.User;
-
+import com.freeuni.quiz.service.UserService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,12 +13,12 @@ import java.sql.SQLException;
 
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
-    private UserDAO usersDAO;
+    private UserService userService;
 
     @Override
     public void init() {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        usersDAO = new UserDAO(dataSource);
+        userService = new UserService(dataSource);
     }
 
     @Override
@@ -36,6 +33,7 @@ public class RegisterServlet extends HttpServlet {
         String imageURL = request.getParameter("imageURL");
         String bio = request.getParameter("bio");
 
+
         if (username == null || password == null || firstName == null || lastName == null || email == null) {
             request.setAttribute("error", "Please fill out all required fields.");
             request.getRequestDispatcher("/register.jsp").forward(request, response);
@@ -43,34 +41,12 @@ public class RegisterServlet extends HttpServlet {
         }
 
         try {
-            // Check if user already exists by username or email
-            if (usersDAO.findByUsername(username) != null) {
-                request.setAttribute("error", "Username already taken.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
-                return;
-            }
-
-            User user = new User();
-            user.setUserName(username);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setEmail(email);
-            user.setImageURL(imageURL != null && !imageURL.trim().isEmpty() ? imageURL : null);
-            user.setBio(bio);
-            //hash password
-            byte[] salt = PasswordUtil.generateSalt();
-            String hashed = PasswordUtil.hashPassword(password, salt);
-            String encodedSalt = PasswordUtil.encodeSalt(salt);
-
-            user.setHashPassword(hashed);
-            user.setSalt(encodedSalt);
-
-            boolean success = usersDAO.addUser(user);
+            boolean success = userService.registerUser(username, password, firstName, lastName, email, imageURL, bio);
 
             if (success) {
                 response.sendRedirect("login.jsp");
             } else {
-                request.setAttribute("error", "Failed to register user. Try again.");
+                request.setAttribute("error", "Username already taken.");
                 request.getRequestDispatcher("/register.jsp").forward(request, response);
             }
 

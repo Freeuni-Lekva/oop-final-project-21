@@ -22,7 +22,7 @@ public class UserDAO {
              PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, user.getHashPassword());
-            stmt.setString(2, user.getSalt()); // ✅ added
+            stmt.setString(2, user.getSalt());
             stmt.setString(3, user.getFirstName());
             stmt.setString(4, user.getLastName());
             stmt.setString(5, user.getUserName());
@@ -131,7 +131,7 @@ public class UserDAO {
         User user = new User();
         user.setId(rs.getInt("id"));
         user.setHashPassword(rs.getString("hashPassword"));
-        user.setSalt(rs.getString("salt")); // ✅ added
+        user.setSalt(rs.getString("salt"));
         user.setFirstName(rs.getString("firstName"));
         user.setLastName(rs.getString("lastName"));
         user.setUserName(rs.getString("userName"));

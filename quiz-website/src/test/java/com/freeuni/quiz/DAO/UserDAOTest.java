@@ -1,4 +1,4 @@
-package DAO;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.User;
 import com.freeuni.quiz.DAO.UserDAO;

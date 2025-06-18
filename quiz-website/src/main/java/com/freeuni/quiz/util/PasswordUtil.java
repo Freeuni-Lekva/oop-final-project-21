@@ -19,7 +19,7 @@ public class PasswordUtil {
 
     public static byte[] generateSalt() {
         SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[16]; // 128 bits
+        byte[] salt = new byte[16];
         random.nextBytes(salt);
         return salt;
     }
