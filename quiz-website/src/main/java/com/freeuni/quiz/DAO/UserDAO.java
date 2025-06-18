@@ -14,7 +14,6 @@ public class UserDAO {
         this.dataSource = dataSource;
     }
 
-    // Create a new user
     public boolean addUser(User user) throws SQLException {
         String sql = "INSERT INTO users (hashPassword, salt, firstName, lastName, userName, email, imageURL, bio) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -46,7 +45,6 @@ public class UserDAO {
     }
 
 
-    // Find user by ID
     public User findById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
@@ -77,7 +75,6 @@ public class UserDAO {
     }
 
 
-    // Find all users
     public List<User> findAll() throws SQLException {
         String sql = "SELECT * FROM users";
         List<User> users = new ArrayList<>();
@@ -92,7 +89,7 @@ public class UserDAO {
         return users;
     }
 
-    // Update user
+
     public boolean updateUser(User user) throws SQLException {
         String sql = "UPDATE users SET hashPassword = ?, salt = ?, firstName = ?, lastName = ?, userName = ?, email = ?, imageURL = ?, bio = ? WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
@@ -114,7 +111,6 @@ public class UserDAO {
     }
 
 
-    // Delete user by ID
     public boolean deleteUser(int id) throws SQLException {
         String sql = "DELETE FROM users WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
@@ -126,7 +122,7 @@ public class UserDAO {
         }
     }
 
-    // Helper method to map ResultSet to User
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("id"));
