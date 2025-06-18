@@ -1,6 +1,6 @@
-package DAO;
+package com.freeuni.quiz.DAO;
 
-import bean.User;
+import com.freeuni.quiz.bean.User;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -16,17 +16,19 @@ public class UserDAO {
 
     // Create a new user
     public boolean addUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (hashPassword, firstName, lastName, userName, email, imageURL, bio) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (hashPassword, salt, firstName, lastName, userName, email, imageURL, bio) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setString(1, user.getHashPassword());
-            stmt.setString(2, user.getFirstName());
-            stmt.setString(3, user.getLastName());
-            stmt.setString(4, user.getUserName());
-            stmt.setString(5, user.getEmail());
-            stmt.setString(6, user.getImageURL());
-            stmt.setString(7, user.getBio());
+            stmt.setString(2, user.getSalt()); // ✅ added
+            stmt.setString(3, user.getFirstName());
+            stmt.setString(4, user.getLastName());
+            stmt.setString(5, user.getUserName());
+            stmt.setString(6, user.getEmail());
+            stmt.setString(7, user.getImageURL());
+            stmt.setString(8, user.getBio());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -42,6 +44,7 @@ public class UserDAO {
             return true;
         }
     }
+
 
     // Find user by ID
     public User findById(int id) throws SQLException {
@@ -91,22 +94,25 @@ public class UserDAO {
 
     // Update user
     public boolean updateUser(User user) throws SQLException {
-        String sql = "UPDATE users SET hashPassword = ?, firstName = ?, lastName = ?, userName = ?, email = ?, imageURL = ?, bio = ? WHERE id = ?";
+        String sql = "UPDATE users SET hashPassword = ?, salt = ?, firstName = ?, lastName = ?, userName = ?, email = ?, imageURL = ?, bio = ? WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
+
             stmt.setString(1, user.getHashPassword());
-            stmt.setString(2, user.getFirstName());
-            stmt.setString(3, user.getLastName());
-            stmt.setString(4, user.getUserName());
-            stmt.setString(5, user.getEmail());
-            stmt.setString(6, user.getImageURL());
-            stmt.setString(7, user.getBio());
-            stmt.setInt(8, user.getId());
+            stmt.setString(2, user.getSalt()); // ✅ added
+            stmt.setString(3, user.getFirstName());
+            stmt.setString(4, user.getLastName());
+            stmt.setString(5, user.getUserName());
+            stmt.setString(6, user.getEmail());
+            stmt.setString(7, user.getImageURL());
+            stmt.setString(8, user.getBio());
+            stmt.setInt(9, user.getId());
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
         }
     }
+
 
     // Delete user by ID
     public boolean deleteUser(int id) throws SQLException {
@@ -125,6 +131,7 @@ public class UserDAO {
         User user = new User();
         user.setId(rs.getInt("id"));
         user.setHashPassword(rs.getString("hashPassword"));
+        user.setSalt(rs.getString("salt")); // ✅ added
         user.setFirstName(rs.getString("firstName"));
         user.setLastName(rs.getString("lastName"));
         user.setUserName(rs.getString("userName"));
@@ -133,4 +140,5 @@ public class UserDAO {
         user.setBio(rs.getString("bio"));
         return user;
     }
+
 }

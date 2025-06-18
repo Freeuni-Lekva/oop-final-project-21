@@ -1,3 +1,7 @@
+package com.freeuni.quiz;
+
+import com.freeuni.quiz.util.DBUtil;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

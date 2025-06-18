@@ -1,7 +1,9 @@
-package servlets;
+package com.freeuni.quiz.servlets;
 
-import DAO.UserDAO;
-import bean.User;
+import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.util.PasswordUtil;
+import com.freeuni.quiz.bean.User;
+
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -50,12 +52,18 @@ public class RegisterServlet extends HttpServlet {
 
             User user = new User();
             user.setUserName(username);
-            user.setHashPassword(password);
             user.setFirstName(firstName);
             user.setLastName(lastName);
             user.setEmail(email);
             user.setImageURL(imageURL != null && !imageURL.trim().isEmpty() ? imageURL : null);
             user.setBio(bio);
+            //hash password
+            byte[] salt = PasswordUtil.generateSalt();
+            String hashed = PasswordUtil.hashPassword(password, salt);
+            String encodedSalt = PasswordUtil.encodeSalt(salt);
+
+            user.setHashPassword(hashed);
+            user.setSalt(encodedSalt);
 
             boolean success = usersDAO.addUser(user);
 
@@ -70,6 +78,8 @@ public class RegisterServlet extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("error", "Database error: " + e.getMessage());
             request.getRequestDispatcher("/register.jsp").forward(request, response);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

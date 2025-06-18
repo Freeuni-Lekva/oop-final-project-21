@@ -1,4 +1,4 @@
-package bean;
+package com.freeuni.quiz.bean;
 
 public class User {
         private int id;
@@ -9,11 +9,12 @@ public class User {
         private String email;
         private String imageURL;
         private String bio;
+        private String salt;
 
         public User() { }
 
         public User(int id, String hashPassword, String firstName, String lastName,
-                    String userName, String email, String imageURL, String bio) {
+                    String userName, String email, String imageURL, String bio,String salt) {
             this.id = id;
             this.hashPassword = hashPassword;
             this.firstName = firstName;
@@ -22,7 +23,12 @@ public class User {
             this.email = email;
             this.imageURL = imageURL;
             this.bio = bio;
+            this.salt = salt;
         }
+
+        public void setSalt(String salt) { this.salt = salt; }
+
+        public String getSalt() { return salt; }
 
         public int getId() {
             return id;

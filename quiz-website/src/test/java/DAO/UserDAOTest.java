@@ -1,6 +1,7 @@
 package DAO;
 
-import bean.User;
+import com.freeuni.quiz.bean.User;
+import com.freeuni.quiz.DAO.UserDAO;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
 import org.junit.BeforeClass;
