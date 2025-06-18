@@ -1,0 +1,170 @@
+package DAO;
+
+import bean.User;
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+
+import static org.junit.Assert.*;
+
+public class UserDAOTest {
+    private static BasicDataSource basicDataSource;
+    private UserDAO userDAO;
+
+    @BeforeClass
+    public static void setUpDatabase() throws SQLException {
+        basicDataSource = new BasicDataSource();
+        basicDataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+        basicDataSource.setUsername("sa");
+        basicDataSource.setPassword("");
+
+        try (Connection connection = basicDataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+
+            statement.execute("CREATE TABLE users (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY," +
+                    "hashPassword VARCHAR(255) NOT NULL," +
+                    "firstName VARCHAR(100) NOT NULL," +
+                    "lastName VARCHAR(100) NOT NULL," +
+                    "userName VARCHAR(100) UNIQUE NOT NULL," +
+                    "email VARCHAR(255) UNIQUE NOT NULL," +
+                    "imageURL VARCHAR(2083)," +
+                    "bio TEXT" +
+                    ")");
+
+            // Optional seed data can go here, or skip if you want clean tests
+        }
+    }
+
+    @Before
+    public void setUp() throws SQLException {
+        userDAO = new UserDAO(basicDataSource);
+
+        // Clear users table before each test
+        try (Connection connection = basicDataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute("DELETE FROM users");
+        }
+    }
+
+    private User createSampleUser() {
+        User user = new User();
+        user.setHashPassword("hashedPass");
+        user.setFirstName("Alice");
+        user.setLastName("Wonderland");
+        user.setUserName("alice");
+        user.setEmail("alice@example.com");
+        user.setImageURL("http://example.com/alice.jpg");
+        user.setBio("Sample bio");
+        return user;
+    }
+
+    @Test
+    public void testAddUserAndFindById() throws SQLException {
+        User user = createSampleUser();
+        boolean added = userDAO.addUser(user);
+        assertTrue(added);
+        assertTrue(user.getId() > 0);
+
+        User fetched = userDAO.findById(user.getId());
+        assertNotNull(fetched);
+        assertEquals("alice", fetched.getUserName());
+
+        user = userDAO.findById(999);
+        assertNull(user);
+    }
+
+    @Test
+    public void testFindByUsername() throws SQLException {
+        User user = createSampleUser();
+        userDAO.addUser(user);
+
+        User fetched = userDAO.findByUsername("alice");
+        assertNotNull(fetched);
+        assertEquals(user.getEmail(), fetched.getEmail());
+
+        user = userDAO.findByUsername("nonexistent");
+        assertNull(user);
+    }
+
+    @Test
+    public void testFindAll() throws SQLException {
+        User user1 = createSampleUser();
+        userDAO.addUser(user1);
+
+        User user2 = createSampleUser();
+        user2.setUserName("bob");
+        user2.setEmail("bob@example.com");
+        userDAO.addUser(user2);
+
+        List<User> allUsers = userDAO.findAll();
+        assertEquals(2, allUsers.size());
+    }
+
+    @Test
+    public void testUpdateUser() throws SQLException {
+        User user = createSampleUser();
+        userDAO.addUser(user);
+
+        user.setFirstName("Alicia");
+        user.setBio("Updated bio");
+        boolean updated = userDAO.updateUser(user);
+        assertTrue(updated);
+
+        User fetched = userDAO.findById(user.getId());
+        assertEquals("Alicia", fetched.getFirstName());
+        assertEquals("Updated bio", fetched.getBio());
+
+        user = createSampleUser();
+        user.setId(999);
+        boolean result = userDAO.updateUser(user);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testDeleteUser() throws SQLException {
+        User user = createSampleUser();
+        userDAO.addUser(user);
+
+        boolean deleted = userDAO.deleteUser(user.getId());
+        assertTrue(deleted);
+
+        User fetched = userDAO.findById(user.getId());
+        assertNull(fetched);
+
+        boolean result = userDAO.deleteUser(999);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testAddUserWithDuplicateUsernameOrEmail() throws SQLException {
+        User user1 = createSampleUser();
+        User user2 = createSampleUser();
+        user2.setEmail("different@example.com"); // keep username same
+
+        assertTrue(userDAO.addUser(user1));
+
+        try {
+            userDAO.addUser(user2);
+            fail("Expected SQLException due to duplicate username");
+        } catch (SQLException e) {
+            //pass
+        }
+
+        user2.setUserName("differentUser");
+        user2.setEmail(user1.getEmail()); // now duplicate email
+
+        try {
+            userDAO.addUser(user2);
+            fail("Expected SQLException due to duplicate email");
+        } catch (SQLException e) {
+            //pass
+        }
+    }
+}
