@@ -31,6 +31,7 @@ public class UserDAOTest {
             statement.execute("CREATE TABLE users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "hashPassword VARCHAR(255) NOT NULL," +
+                    "salt VARCHAR(255) NOT NULL," +
                     "firstName VARCHAR(100) NOT NULL," +
                     "lastName VARCHAR(100) NOT NULL," +
                     "userName VARCHAR(100) UNIQUE NOT NULL," +
@@ -60,6 +61,7 @@ public class UserDAOTest {
         user.setFirstName("Alice");
         user.setLastName("Wonderland");
         user.setUserName("alice");
+        user.setSalt("randomSalt");
         user.setEmail("alice@example.com");
         user.setImageURL("http://example.com/alice.jpg");
         user.setBio("Sample bio");
