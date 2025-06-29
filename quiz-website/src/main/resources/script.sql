@@ -14,16 +14,18 @@ CREATE TABLE users (
 );
 CREATE TABLE friendships (
                         id INT AUTO_INCREMENT PRIMARY KEY,
-                        friendSender_id INT UNIQUE NOT NULL,
-                        friendReceiver_id INT UNIQUE NOT NULL,
+                        friendSender_id INT NOT NULL,
+                        friendReceiver_id INT  NOT NULL,
                         FOREIGN KEY (friendSender_id) REFERENCES users(id) ON DELETE CASCADE,
-                        FOREIGN KEY (friendReceiver_id) REFERENCES users(id) ON DELETE CASCADE
+                        FOREIGN KEY (friendReceiver_id) REFERENCES users(id) ON DELETE CASCADE,
+                        UNIQUE (friendSender_id, friendReceiver_id)
 );
-CREATE TABLE friend_requests (
+CREATE TABLE friendship_requests (
                         id INT AUTO_INCREMENT PRIMARY KEY,
-                        requestSender_id INT UNIQUE NOT NULL,
-                        requestReceiver_id INT UNIQUE NOT NULL,
+                        requestSender_id INT  NOT NULL,
+                        requestReceiver_id INT  NOT NULL,
                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (requestSender_id) REFERENCES users(id) ON DELETE CASCADE,
-                        FOREIGN KEY (requestReceiver_id) REFERENCES users(id) ON DELETE CASCADE
+                        FOREIGN KEY (requestReceiver_id) REFERENCES users(id) ON DELETE CASCADE,
+                        UNIQUE (requestSender_id, requestReceiver_id)
 );
