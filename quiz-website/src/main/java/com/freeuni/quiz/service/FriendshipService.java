@@ -25,7 +25,7 @@ public class FriendshipService {
         return friendshipDAO.addFriendship(friendship);
     }
 
-    public boolean removeFriendshipBetween(int userId1, int userId2) throws SQLException {
+    public boolean removeFriendshipByUserIds(int userId1, int userId2) throws SQLException {
         Integer friendshipId = friendshipDAO.findFriendshipId(userId1, userId2);
         if (friendshipId != null) {
             return friendshipDAO.deleteFriendship(friendshipId);

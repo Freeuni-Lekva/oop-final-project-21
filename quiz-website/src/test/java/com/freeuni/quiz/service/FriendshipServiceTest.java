@@ -101,7 +101,7 @@ public class FriendshipServiceTest {
         friendshipService.addFriendship(u1.getId(), u2.getId());
         assertTrue(friendshipService.areFriends(u1.getId(), u2.getId()));
 
-        boolean deleted = friendshipService.removeFriendship(u1.getId(), u2.getId());
+        boolean deleted = friendshipService.removeFriendshipByUserIds(u1.getId(), u2.getId());
         assertTrue(deleted);
         assertFalse(friendshipService.areFriends(u1.getId(), u2.getId()));
     }
