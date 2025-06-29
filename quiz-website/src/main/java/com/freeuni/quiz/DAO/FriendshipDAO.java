@@ -6,10 +6,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FriendshipDao {
+public class FriendshipDAO {
     private final DataSource dataSource;
 
-    public FriendshipDao(DataSource dataSource) {
+    public FriendshipDAO(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -89,6 +89,70 @@ public class FriendshipDao {
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
         }
+    }
+
+    public boolean exists(int userId1, int userId2) throws SQLException {
+        String sql = "SELECT id FROM friendships WHERE " +
+                "(friendSenderId = ? AND friendReceiverId = ?) OR " +
+                "(friendSenderId = ? AND friendReceiverId = ?)";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId1);
+            stmt.setInt(2, userId2);
+            stmt.setInt(3, userId2);
+            stmt.setInt(4, userId1);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public List<Integer> findFriendIdsByUserId(int userId) throws SQLException {
+        String sql = "SELECT friendSenderId, friendReceiverId FROM friendships WHERE " +
+                "friendSenderId = ? OR friendReceiverId = ?";
+
+        List<Integer> friendIds = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int senderId = rs.getInt("friendSenderId");
+                    int receiverId = rs.getInt("friendReceiverId");
+
+                    if (senderId != userId) friendIds.add(senderId);
+                    if (receiverId != userId) friendIds.add(receiverId);
+                }
+            }
+        }
+
+        return friendIds;
+    }
+    public Integer findFriendshipId(int userId1, int userId2) throws SQLException {
+        String sql = "SELECT id FROM friendships WHERE " +
+                "(friendSenderId = ? AND friendReceiverId = ?) OR " +
+                "(friendSenderId = ? AND friendReceiverId = ?)";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId1);
+            stmt.setInt(2, userId2);
+            stmt.setInt(3, userId2);
+            stmt.setInt(4, userId1);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        }
+
+        return null;
     }
 
     private Friendship mapResultSetToFriendship(ResultSet rs) throws SQLException {

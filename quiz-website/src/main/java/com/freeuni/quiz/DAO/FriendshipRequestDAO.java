@@ -51,6 +51,48 @@ public class FriendshipRequestDAO {
         return null;
     }
 
+    public boolean exists(int senderId, int receiverId) throws SQLException {
+        String sql = "SELECT id FROM friendship_requests WHERE requestSender_id = ? AND requestReceiver_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, senderId);
+            stmt.setInt(2, receiverId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public List<FriendshipRequest> findRequestsBySenderId(int senderId) throws SQLException {
+        String sql = "SELECT * FROM friendship_requests WHERE requestSender_id = ?";
+        List<FriendshipRequest> requests = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, senderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    requests.add(mapResultSetToRequest(rs));
+                }
+            }
+        }
+        return requests;
+    }
+
+    public List<FriendshipRequest> findRequestsByReceiverId(int receiverId) throws SQLException {
+        String sql = "SELECT * FROM friendship_requests WHERE requestReceiver_id = ?";
+        List<FriendshipRequest> requests = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, receiverId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    requests.add(mapResultSetToRequest(rs));
+                }
+            }
+        }
+        return requests;
+    }
+
     public List<FriendshipRequest> findAll() throws SQLException {
         String sql = "SELECT * FROM friendship_requests";
         List<FriendshipRequest> requests = new ArrayList<>();
