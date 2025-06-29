@@ -17,7 +17,7 @@ public class FriendshipService {
         this.friendshipDAO = new FriendshipDAO(dataSource);
     }
 
-    public boolean addFriend(int senderId, int receiverId) throws SQLException {
+    public boolean addFriendship(int senderId, int receiverId) throws SQLException {
         if (senderId == receiverId) return false;
         if (areFriends(senderId, receiverId)) return false;
 
@@ -51,7 +51,7 @@ public class FriendshipService {
 
         Set<Integer> mutualFriends = new HashSet<>(friendsOfUser1);
         mutualFriends.retainAll(friendsOfUser2);
-        
+
         return mutualFriends.stream().collect(Collectors.toList());
     }
 }
