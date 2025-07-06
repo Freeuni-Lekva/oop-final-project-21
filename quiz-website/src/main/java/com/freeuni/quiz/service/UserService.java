@@ -7,14 +7,18 @@ import com.freeuni.quiz.converter.UserConverter;
 import com.freeuni.quiz.util.PasswordUtil;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class UserService {
 
     private final UserDAO userDAO;
+    private final DataSource dataSource;
 
     public UserService(DataSource dataSource) {
         this.userDAO = new UserDAO(dataSource);
+        this.dataSource = dataSource;
     }
 
     public boolean registerUser(String username, String password, String firstName,
@@ -56,5 +60,23 @@ public class UserService {
         }
     }
 
-}
+    public boolean updateUserInfo(String username, String firstName, String lastName,
+                                  String email, String imageURL, String bio) throws SQLException {
 
+        String sql = "UPDATE users SET firstName = ?, lastName = ?, email = ?, imageURL = ?, bio = ? WHERE userName = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setString(3, email);
+            stmt.setString(4, imageURL);
+            stmt.setString(5, bio);
+            stmt.setString(6, username);
+
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        }
+    }
+}

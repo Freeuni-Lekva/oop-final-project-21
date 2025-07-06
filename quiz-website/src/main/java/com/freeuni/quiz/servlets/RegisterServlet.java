@@ -44,7 +44,9 @@ public class RegisterServlet extends HttpServlet {
             boolean success = userService.registerUser(username, password, firstName, lastName, email, imageURL, bio);
 
             if (success) {
-                response.sendRedirect("login.jsp");
+                request.setAttribute("message", "New user registered successfully! \uD83E\uDD73");
+                request.getRequestDispatcher("/register-success.jsp").forward(request, response);
+                //response.sendRedirect("login.jsp");
             } else {
                 request.setAttribute("error", "Username already taken.");
                 request.getRequestDispatcher("/register.jsp").forward(request, response);
