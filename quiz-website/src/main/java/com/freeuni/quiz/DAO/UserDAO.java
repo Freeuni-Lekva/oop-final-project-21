@@ -44,6 +44,26 @@ public class UserDAO {
         }
     }
 
+    public List<User> findUsers(String input) throws SQLException {
+        String sql = "SELECT * FROM users WHERE userName LIKE ? OR firstName LIKE ? OR lastName LIKE ?";
+        List<User> users = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            String likeQuery = "%" + input + "%";
+            stmt.setString(1, likeQuery);
+            stmt.setString(2, likeQuery);
+            stmt.setString(3, likeQuery);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapResultSetToUser(rs));
+                }
+            }
+        }
+        return users;
+    }
+
 
     public User findById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ?";

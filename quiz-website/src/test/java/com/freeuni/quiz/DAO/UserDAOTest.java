@@ -170,4 +170,49 @@ public class UserDAOTest {
             //pass
         }
     }
+
+    @Test
+    public void testFindUsersByPartialMatch() throws SQLException {
+        // Add multiple users
+        User user1 = createSampleUser(); // "alice", "Alice", "Wonderland"
+        userDAO.addUser(user1);
+
+        User user2 = createSampleUser();
+        user2.setUserName("bob123");
+        user2.setFirstName("Bob");
+        user2.setLastName("Builder");
+        user2.setEmail("bob@example.com");
+        userDAO.addUser(user2);
+
+        User user3 = createSampleUser();
+        user3.setUserName("charlie99");
+        user3.setFirstName("Charles");
+        user3.setLastName("Chaplin");
+        user3.setEmail("charlie@example.com");
+        userDAO.addUser(user3);
+
+        // Partial match on first name
+        List<User> result1 = userDAO.findUsers("Ali");
+        assertEquals(1, result1.size());
+        assertEquals("alice", result1.get(0).getUserName());
+
+        // Partial match on last name
+        List<User> result2 = userDAO.findUsers("Build");
+        assertEquals(1, result2.size());
+        assertEquals("bob123", result2.get(0).getUserName());
+
+        // Match on username
+        List<User> result3 = userDAO.findUsers("charlie");
+        assertEquals(1, result3.size());
+        assertEquals("charlie99", result3.get(0).getUserName());
+
+        // No match
+        List<User> result4 = userDAO.findUsers("zzzz");
+        assertTrue(result4.isEmpty());
+
+        // Match multiple users
+        List<User> result5 = userDAO.findUsers("a"); // matches alice, charlie
+        assertEquals(2, result5.size());
+    }
+
 }
