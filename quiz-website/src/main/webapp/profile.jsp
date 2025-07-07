@@ -2,7 +2,9 @@
 <%@ page import="com.freeuni.quiz.DTO.UserDTO" %>
 <%
   UserDTO user = (UserDTO) request.getAttribute("user");
+  boolean isOwner = Boolean.TRUE.equals(request.getAttribute("isOwner"));
 %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,9 +118,18 @@
 
   <div class="button-container">
     <a href="home.jsp" class="btn btn-home">← Back to Homepage</a>
+
+    <% if (isOwner) { %>
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
+    <% } else { %>
+    <!-- Optional for other users -->
+    <form action="send-friend-request" method="post">
+      <input type="hidden" name="receiverId" value="<%= user.getId() %>">
+    </form>
+    <% } %>
   </div>
+
 </div>
 </body>
 </html>
