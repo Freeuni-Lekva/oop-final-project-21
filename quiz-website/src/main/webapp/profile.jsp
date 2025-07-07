@@ -115,6 +115,7 @@
   </div>
 
   <div class="button-container">
+    <a href="home.jsp" class="btn btn-home">← Back to Homepage</a>
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
   </div>
