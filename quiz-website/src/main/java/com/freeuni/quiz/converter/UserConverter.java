@@ -6,6 +6,7 @@ import com.freeuni.quiz.bean.User;
 public class UserConverter {
     public static UserDTO toDTO(User user) {
         return new UserDTO(
+                user.getId(),
                 user.getUserName(),
                 user.getFirstName(),
                 user.getLastName(),

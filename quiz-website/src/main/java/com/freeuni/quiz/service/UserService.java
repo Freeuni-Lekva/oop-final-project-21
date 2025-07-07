@@ -60,23 +60,17 @@ public class UserService {
         }
     }
 
-    public boolean updateUserInfo(String username, String firstName, String lastName,
+    public boolean updateUserInfo(int id, String firstName, String lastName,
                                   String email, String imageURL, String bio) throws SQLException {
 
-        String sql = "UPDATE users SET firstName = ?, lastName = ?, email = ?, imageURL = ?, bio = ? WHERE userName = ?";
+        User userEntity = userDAO.findById(id);
 
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        userEntity.setBio(bio);
+        userEntity.setFirstName(firstName);
+        userEntity.setLastName(lastName);
+        userEntity.setEmail(email);
+        userEntity.setImageURL(imageURL);
 
-            stmt.setString(1, firstName);
-            stmt.setString(2, lastName);
-            stmt.setString(3, email);
-            stmt.setString(4, imageURL);
-            stmt.setString(5, bio);
-            stmt.setString(6, username);
-
-            int rowsUpdated = stmt.executeUpdate();
-            return rowsUpdated > 0;
-        }
+        return userDAO.updateUser(userEntity);
     }
 }

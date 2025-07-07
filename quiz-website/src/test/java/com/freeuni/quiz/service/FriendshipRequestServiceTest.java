@@ -26,7 +26,7 @@ public class FriendshipRequestServiceTest {
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-
+            stmt.execute("DROP ALL OBJECTS");
             stmt.execute("CREATE TABLE friendship_requests (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "requestSender_id INT NOT NULL," +

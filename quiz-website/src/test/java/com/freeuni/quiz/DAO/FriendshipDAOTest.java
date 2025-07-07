@@ -13,16 +13,16 @@ public class FriendshipDAOTest {
     private static BasicDataSource dataSource;
     private FriendshipDAO friendshipDAO;
 
+
     @BeforeClass
     public static void setUpDatabase() throws SQLException {
         dataSource = new BasicDataSource();
         dataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
         dataSource.setUsername("sa");
         dataSource.setPassword("");
-
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
-
+            statement.execute("DROP ALL OBJECTS");
             statement.execute("CREATE TABLE friendships (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "friendSenderId INT NOT NULL," +

@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.SQLException;
 
 @WebServlet("/edit-profile")
 public class EditProfileServlet extends HttpServlet {
@@ -52,28 +53,26 @@ public class EditProfileServlet extends HttpServlet {
         String imageURL = req.getParameter("imageURL");
         String bio = req.getParameter("bio");
 
+        boolean updated = false;
         try {
-            boolean updated = userService.updateUserInfo(
-                    user.getUserName(), firstName, lastName, email, imageURL, bio);
+            updated = userService.updateUserInfo(user.getId(), firstName, lastName,
+                    email, imageURL, bio);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-            if (updated) {
-                // Update session user info to reflect changes
-                user.setFirstName(firstName);
-                user.setLastName(lastName);
-                user.setEmail(email);
-                user.setImageURL(imageURL);
-                user.setBio(bio);
-                session.setAttribute("user", user);
-
-                resp.sendRedirect("profile");
-            } else {
-                req.setAttribute("error", "Failed to update profile.");
-                req.getRequestDispatcher("editProfile.jsp").forward(req, resp);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            req.setAttribute("error", "An error occurred: " + e.getMessage());
+        if(updated){
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setEmail(email);
+            user.setImageURL(imageURL);
+            user.setBio(bio);
+            session.setAttribute("user", user);
+            resp.sendRedirect("profile");
+        } else {
+            req.setAttribute("error", "Failed to update profile.");
             req.getRequestDispatcher("editProfile.jsp").forward(req, resp);
         }
+
     }
 }
