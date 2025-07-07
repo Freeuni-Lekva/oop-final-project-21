@@ -122,8 +122,41 @@
 </div>
 
 <div class="content">
-    <div class="search-bar">
-        <input type="text" placeholder="Search users or quizzes">
+    <div class="search-bar" style="text-align:center; position: relative;">
+        <select id="search-type" name="type"
+                style="padding: 10px; font-size: 16px; border-radius: 25px;">
+            <option value="users">Users</option>
+            <option value="quizzes">Quizzes</option>
+        </select>
+
+        <div style="display: inline-block; position: relative;">
+            <input
+                    id="search-input"
+                    name="query"
+                    type="text"
+                    placeholder="Search..."
+                    style="width: 300px; padding: 10px; font-size: 16px; border-radius: 25px; border: 1px solid #ccc;"
+                    autocomplete="off"
+            >
+
+            <ul
+                    id="search-results"
+                    style="display: none;
+                   position: absolute;
+                   top: 110%;
+                   left: 0;
+                   width: 100%;
+                   background: white;
+                   border: 1px solid #ccc;
+                   border-radius: 5px;
+                   list-style: none;
+                   padding: 0;
+                   margin: 5px 0 0 0;
+                   z-index: 1000;
+                   max-height: 200px;
+                   overflow-y: auto;">
+            </ul>
+        </div>
     </div>
 
     <div class="grid">
@@ -151,6 +184,6 @@
         </div>
     </div>
 </div>
-
+<script src="js/search.js?v=2"></script>
 </body>
 </html>
