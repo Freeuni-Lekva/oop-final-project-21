@@ -15,4 +15,16 @@ public class UserConverter {
                 user.getBio()
         );
     }
+
+    public static UserDTO convertToDTO(User user) {
+        return new UserDTO(
+                user.getId(),
+                user.getUserName(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getImageURL(),
+                user.getBio()
+        );
+    }
 }

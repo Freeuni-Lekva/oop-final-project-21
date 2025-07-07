@@ -128,5 +128,65 @@ public class UserServiceTest {
         UserDTO userDTO = userService.authenticateUser("nonExisting", "anyPassword");
         assertNull("Authentication should fail for non-existing user", userDTO);
     }
+    @Test
+    public void testUpdateUserInfo() throws Exception {
+        // First register a user
+        userService.registerUser("johnny", "pass", "John", "Doe", "jd@example.com", null, "original bio");
+
+        UserDTO userBefore = userService.findByUsername("johnny");
+        assertEquals("original bio", userBefore.getBio());
+
+        // Update user info
+        boolean updated = userService.updateUserInfo(
+                userBefore.getId(),
+                "Johnny",
+                "Updated",
+                "johnny.new@example.com",
+                "http://image.com/johnny.jpg",
+                "Updated bio"
+        );
+
+        assertTrue(updated);
+
+        // Fetch again and verify changes
+        UserDTO userAfter = userService.findByUsername("johnny");
+        assertEquals("Johnny", userAfter.getFirstName());
+        assertEquals("Updated", userAfter.getLastName());
+        assertEquals("johnny.new@example.com", userAfter.getEmail());
+        assertEquals("Updated bio", userAfter.getBio());
+        assertEquals("http://image.com/johnny.jpg", userAfter.getImageURL());
+    }
+    @Test
+    public void testSearchUsers() throws Exception {
+        userService.registerUser("alex01", "pass", "Alex", "Miller", "alex@example.com", null, null);
+        userService.registerUser("alexa", "pass", "Alexa", "Stone", "alexa@example.com", null, null);
+        userService.registerUser("bob", "pass", "Bob", "Builder", "bob@example.com", null, null);
+
+        // Search by username
+        assertEquals(1, userService.searchUsers("bob").size());
+
+        // Search by first name fragment
+        assertEquals(2, userService.searchUsers("Alex").size());
+
+        // Search by last name fragment
+        assertEquals(1, userService.searchUsers("Build").size());
+
+        // No results
+        assertTrue(userService.searchUsers("xyz").isEmpty());
+    }
+    @Test
+    public void testFindByUsername() throws Exception {
+        userService.registerUser("searchable", "pass", "Sarah", "Connor", "sarah@example.com", null, null);
+
+        UserDTO user = userService.findByUsername("searchable");
+        assertNotNull(user);
+        assertEquals("Sarah", user.getFirstName());
+        assertEquals("sarah@example.com", user.getEmail());
+
+        // Non-existing
+        UserDTO notFound = userService.findByUsername("ghost");
+        assertNull(notFound);
+    }
+
 }
 

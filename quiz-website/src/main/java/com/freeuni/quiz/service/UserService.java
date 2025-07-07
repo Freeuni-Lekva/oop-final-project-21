@@ -10,6 +10,10 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.freeuni.quiz.converter.UserConverter.convertToDTO;
 
 public class UserService {
 
@@ -72,5 +76,22 @@ public class UserService {
         userEntity.setImageURL(imageURL);
 
         return userDAO.updateUser(userEntity);
+    }
+
+    public List<UserDTO> searchUsers(String input) throws SQLException {
+        List<User> users = userDAO.findUsers(input);
+        List<UserDTO> dtos = new ArrayList<>();
+
+        for (User user : users) {
+            dtos.add(convertToDTO(user));
+        }
+
+        return dtos;
+    }
+
+    public UserDTO findByUsername(String input) throws SQLException {
+        User user = userDAO.findByUsername(input);
+        if (user == null) return null;
+        return UserConverter.toDTO(user);
     }
 }
