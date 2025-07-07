@@ -7,14 +7,20 @@ public class UserDTO {
     private String email;
     private String imageURL;
     private String bio;
+    private int id;
 
-    public UserDTO(String userName, String firstName, String lastName, String email, String imageURL, String bio) {
+    public UserDTO(int id, String userName, String firstName, String lastName, String email, String imageURL, String bio) {
+        this.id=id;
         this.userName = userName;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.imageURL = imageURL;
         this.bio = bio;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getUserName() { return userName; }
