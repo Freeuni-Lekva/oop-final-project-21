@@ -27,7 +27,7 @@ public class UserDAOTest {
 
         try (Connection connection = basicDataSource.getConnection();
              Statement statement = connection.createStatement()) {
-
+            statement.execute("DROP ALL OBJECTS");
             statement.execute("CREATE TABLE users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "hashPassword VARCHAR(255) NOT NULL," +
