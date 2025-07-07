@@ -2,6 +2,7 @@ package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.FriendshipRequest;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,6 +33,14 @@ public class FriendshipRequestDAOTest {
                     "requestReceiver_id INT NOT NULL," +
                     "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ")");
+        }
+    }
+
+    @AfterClass
+    public static void tearDownDatabase() throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute("DROP ALL OBJECTS");
         }
     }
 

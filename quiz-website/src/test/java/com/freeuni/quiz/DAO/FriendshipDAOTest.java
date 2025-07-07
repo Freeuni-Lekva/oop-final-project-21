@@ -13,6 +13,14 @@ public class FriendshipDAOTest {
     private static BasicDataSource dataSource;
     private FriendshipDAO friendshipDAO;
 
+    @AfterClass
+    public static void tearDownDatabase() throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute("DROP ALL OBJECTS");
+        }
+    }
+
     @BeforeClass
     public static void setUpDatabase() throws SQLException {
         dataSource = new BasicDataSource();
@@ -23,7 +31,7 @@ public class FriendshipDAOTest {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
 
-            statement.execute("CREATE TABLE friendships (" +
+            statement.execute("CREATE TABLE IF NOT EXISTS friendships (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "friendSenderId INT NOT NULL," +
                     "friendReceiverId INT NOT NULL" +
