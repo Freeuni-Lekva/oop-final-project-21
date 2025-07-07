@@ -26,21 +26,13 @@ public class FriendshipRequestDAOTest {
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-
+            stmt.execute("DROP ALL OBJECTS");
             stmt.execute("CREATE TABLE friendship_requests (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "requestSender_id INT NOT NULL," +
                     "requestReceiver_id INT NOT NULL," +
                     "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ")");
-        }
-    }
-
-    @AfterClass
-    public static void tearDownDatabase() throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.execute("DROP ALL OBJECTS");
         }
     }
 
