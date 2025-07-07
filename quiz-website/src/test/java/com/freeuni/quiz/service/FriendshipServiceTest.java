@@ -30,7 +30,7 @@ public class FriendshipServiceTest {
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-
+            stmt.execute("DROP ALL OBJECTS");
             stmt.execute("CREATE TABLE users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "hashPassword VARCHAR(255)," +

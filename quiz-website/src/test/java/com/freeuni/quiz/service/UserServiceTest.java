@@ -27,7 +27,7 @@ public class UserServiceTest {
         // Initialize DB schema for users table
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-
+            stmt.execute("DROP ALL OBJECTS");
             String createTableSQL = "CREATE TABLE users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "username VARCHAR(255) UNIQUE NOT NULL," +
