@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS quiz_categories (
 
 CREATE TABLE IF NOT EXISTS quizzes (
                                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                       creator_user_id BIGINT NOT NULL,
+                                       creator_user_id INT NOT NULL,
                                        category_id BIGINT,
                                        last_question_number BIGINT DEFAULT 0,
                                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
 
 CREATE TABLE IF NOT EXISTS test_questions (
                                               id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                              author_user_id BIGINT NOT NULL,
+                                              author_user_id INT NOT NULL,
                                               category_id BIGINT DEFAULT NULL,
                                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                               question_data MEDIUMBLOB NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS test_questions (
 
 CREATE TABLE IF NOT EXISTS quiz_sessions (
                                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                             participant_user_id BIGINT UNIQUE NOT NULL,
+                                             participant_user_id INT UNIQUE NOT NULL,
                                              test_id BIGINT NOT NULL,
                                              current_question_num BIGINT DEFAULT 0,
                                              time_allocated BIGINT,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS quiz_sessions (
 
 CREATE TABLE IF NOT EXISTS participant_answers (
                                                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                                   participant_user_id BIGINT NOT NULL,
+                                                   participant_user_id INT NOT NULL,
                                                    test_id BIGINT NOT NULL,
                                                    question_number BIGINT NOT NULL,
                                                    points_earned DOUBLE DEFAULT 0,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS participant_answers (
 
 CREATE TABLE IF NOT EXISTS quiz_completions (
                                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                                participant_user_id BIGINT NOT NULL,
+                                                participant_user_id INT NOT NULL,
                                                 test_id BIGINT NOT NULL,
                                                 final_score DOUBLE DEFAULT 0,
                                                 total_possible DOUBLE DEFAULT 0,
