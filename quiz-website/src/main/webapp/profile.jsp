@@ -122,14 +122,22 @@
     <% if (isOwner) { %>
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
-    <% } else { %>
-    <!-- Optional for other users -->
-    <form action="send-friend-request" method="post">
-      <input type="hidden" name="receiverId" value="<%= user.getId() %>">
+    <% } else {
+      boolean hasPendingRequest = Boolean.TRUE.equals(request.getAttribute("hasPendingRequest"));
+      if (hasPendingRequest) { %>
+    <button class="friend-request-btn" disabled>Request Sent</button>
+    <%   } else { %>
+    <form class="friend-request-form" data-receiver-id="<%= user.getId() %>">
+      <button type="submit" class="friend-request-btn">Send Friend Request</button>
     </form>
-    <% } %>
+    <%   }
+    } %>
   </div>
 
 </div>
+<script>
+  window.contextPath = '<%= request.getContextPath() %>';
+</script>
+<script src="${pageContext.request.contextPath}/js/sendFriendRequest.js?v=2"></script>
 </body>
 </html>

@@ -112,8 +112,8 @@
     <% } %>
     <div class="username"><%= user.getUserName() %></div>
 
-    <a href="profile">Profile</a>
-    <a href="#">Friend Requests</a>
+    <a href="${pageContext.request.contextPath}/profile">Profile</a>
+    <a href="${pageContext.request.contextPath}/friendshipRequests">Friend Requests</a>
     <a href="#">Messages</a>
     <a href="#">Challenges</a>
     <a href="#">History</a>
