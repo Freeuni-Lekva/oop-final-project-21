@@ -3,6 +3,7 @@
 <%
   UserDTO user = (UserDTO) request.getAttribute("user");
   boolean isOwner = Boolean.TRUE.equals(request.getAttribute("isOwner"));
+  Integer requestId = (Integer) request.getAttribute("requestId");
 %>
 
 <!DOCTYPE html>
@@ -122,16 +123,26 @@
     <% if (isOwner) { %>
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
-    <% } else {
-      boolean hasPendingRequest = Boolean.TRUE.equals(request.getAttribute("hasPendingRequest"));
-      if (hasPendingRequest) { %>
-    <button class="friend-request-btn" disabled>Request Sent</button>
-    <%   } else { %>
+    <% } else if (requestId != null) { %>
+    <!-- A request was sent to me by this user -->
+    <form method="post" action="${pageContext.request.contextPath}/respondToFriendRequest" style="display:inline;">
+      <input type="hidden" name="action" value="accept">
+      <input type="hidden" name="requestId" value="<%= requestId %>">
+      <input type="hidden" name="senderId" value="<%= user.getId() %>">
+      <button type="submit" class="btn btn-edit">Accept</button>
+    </form>
+    <form method="post" action="${pageContext.request.contextPath}/respondToFriendRequest" style="display:inline;">
+      <input type="hidden" name="action" value="decline">
+      <input type="hidden" name="requestId" value="<%= requestId %>">
+      <input type="hidden" name="senderId" value="<%= user.getId() %>">
+      <button type="submit" class="btn btn-logout">Decline</button>
+    </form>
+    <% } else { %>
     <form class="friend-request-form" data-receiver-id="<%= user.getId() %>">
       <button type="submit" class="friend-request-btn">Send Friend Request</button>
     </form>
-    <%   }
-    } %>
+    <% } %>
+
   </div>
 
 </div>

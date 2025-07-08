@@ -41,4 +41,8 @@ public class FriendshipRequestService {
     public FriendshipRequest findRequestById(int requestId) throws SQLException {
         return requestDAO.findById(requestId);
     }
+
+    public FriendshipRequest getRequest(int senderId, int receiverId) throws SQLException {
+        return requestDAO.getFriendshipRequest(senderId, receiverId);
+    }
 }

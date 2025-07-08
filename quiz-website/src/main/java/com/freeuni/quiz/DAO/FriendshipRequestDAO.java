@@ -135,6 +135,28 @@ public class FriendshipRequestDAO {
         }
     }
 
+    public FriendshipRequest getFriendshipRequest(int senderId, int receiverId) throws SQLException {
+        String sql = "SELECT * FROM friendship_requests WHERE requestSender_id = ? AND requestReceiver_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, senderId);
+            stmt.setInt(2, receiverId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    FriendshipRequest request = new FriendshipRequest();
+                    request.setId(rs.getInt("id"));
+                    request.setRequestSenderId(rs.getInt("requestSender_id"));
+                    request.setRequestReceiverId(rs.getInt("requestReceiver_id"));
+                    return request;
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+
     private FriendshipRequest mapResultSetToRequest(ResultSet rs) throws SQLException {
         FriendshipRequest request = new FriendshipRequest();
         request.setId(rs.getInt("id"));
@@ -143,4 +165,5 @@ public class FriendshipRequestDAO {
         request.setTimestamp(rs.getTimestamp("timestamp"));
         return request;
     }
+
 }

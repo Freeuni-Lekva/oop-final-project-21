@@ -1,6 +1,7 @@
 package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.DTO.UserDTO;
+import com.freeuni.quiz.bean.FriendshipRequest;
 import com.freeuni.quiz.service.FriendshipRequestService;
 import com.freeuni.quiz.service.UserService;
 
@@ -49,13 +50,16 @@ public class ProfileServlet extends HttpServlet {
                     return;
                 }
             }
-            boolean hasPendingRequest = false;
+            Integer friendshipRequestId = null;
 
             if (currentUser != null && !currentUser.getUserName().equals(profileUser.getUserName())) {
-                hasPendingRequest = friendshipRequestService.requestExists(currentUser.getId(), profileUser.getId());
+                FriendshipRequest pendingRequest = friendshipRequestService.getRequest(profileUser.getId(), currentUser.getId());
+                if (pendingRequest != null) {
+                    friendshipRequestId = pendingRequest.getId();
+                }
             }
 
-            req.setAttribute("hasPendingRequest", hasPendingRequest);
+            req.setAttribute("requestId", friendshipRequestId);
 
             req.setAttribute("user", profileUser);
             req.setAttribute("isOwner", currentUser != null && currentUser.getUserName().equals(profileUser.getUserName()));
