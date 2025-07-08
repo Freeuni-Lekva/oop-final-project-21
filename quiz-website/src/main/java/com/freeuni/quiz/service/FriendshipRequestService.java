@@ -18,7 +18,7 @@ public class FriendshipRequestService {
         if (senderId == receiverId) return false;
         if (requestExists(senderId, receiverId)) return false;
 
-        FriendshipRequest request = new FriendshipRequest(senderId, receiverId, null);
+        FriendshipRequest request = new FriendshipRequest(senderId, receiverId);
         return requestDAO.addFriendshipRequest(request);
     }
 

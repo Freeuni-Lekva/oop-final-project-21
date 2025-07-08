@@ -10,17 +10,15 @@ public class FriendshipRequest {
 
     public FriendshipRequest() {}
 
-    public FriendshipRequest(int requestSenderId, int requestReceiverId, Timestamp timestamp) {
+    public FriendshipRequest(int requestSenderId, int requestReceiverId) {
         this.requestSenderId = requestSenderId;
         this.requestReceiverId = requestReceiverId;
-        this.timestamp = timestamp;
     }
 
-    public FriendshipRequest(int id, int requestSenderId, int requestReceiverId, Timestamp timestamp) {
+    public FriendshipRequest(int id, int requestSenderId, int requestReceiverId) {
         this.id = id;
         this.requestSenderId = requestSenderId;
         this.requestReceiverId = requestReceiverId;
-        this.timestamp = timestamp;
     }
 
     public int getId() {
