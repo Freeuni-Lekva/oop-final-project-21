@@ -94,4 +94,10 @@ public class UserService {
         if (user == null) return null;
         return UserConverter.toDTO(user);
     }
+
+    public UserDTO findById(int id) throws SQLException {
+        User user = userDAO.findById(id);
+        if (user == null) return null;
+        return UserConverter.toDTO(user);
+    }
 }
