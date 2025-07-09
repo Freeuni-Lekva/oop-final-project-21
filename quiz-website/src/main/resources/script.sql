@@ -99,3 +99,25 @@ CREATE TABLE IF NOT EXISTS quiz_completions (
                                                 FOREIGN KEY (participant_user_id) REFERENCES users(id) ON DELETE CASCADE,
                                                 FOREIGN KEY (test_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
+CREATE TABLE quiz_ratings (
+                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                              user_id INT NOT NULL,
+                              quiz_id BIGINT NOT NULL,
+                              rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+                              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                              FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+                              UNIQUE (user_id, quiz_id)
+);
+
+CREATE TABLE quiz_reviews (
+                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                              user_id INT NOT NULL,
+                              quiz_id BIGINT NOT NULL,
+                              review_text TEXT NOT NULL,
+                              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                              FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+                              UNIQUE (user_id, quiz_id)
+);

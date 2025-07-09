@@ -9,7 +9,7 @@ public class DBUtil {
     private static final String USERNAME = "root";
     //private static final String PASSWORD = "Tasobaso123321.";
     //private static final String PASSWORD = "balibarcelona13";
-    private static final String PASSWORD = "";
+    private static final String PASSWORD = "Hunger123^";
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
 
 
