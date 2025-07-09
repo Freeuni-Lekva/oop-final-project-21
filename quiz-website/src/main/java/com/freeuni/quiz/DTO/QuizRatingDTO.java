@@ -8,7 +8,6 @@ public class QuizRatingDTO {
     private Long quizId;
     private Integer rating;
     private Timestamp createdAt;
-    private String userName;
 
     public QuizRatingDTO() {
     }
@@ -53,11 +52,4 @@ public class QuizRatingDTO {
         this.createdAt = createdAt;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
 }

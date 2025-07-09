@@ -1,5 +1,6 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DAO.impl.QuizReviewDAOImpl;
 import com.freeuni.quiz.bean.QuizReview;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
@@ -15,7 +16,7 @@ import static org.junit.Assert.*;
 
 public class QuizReviewDAOTest {
     private static BasicDataSource dataSource;
-    private QuizReviewDAO reviewDAO;
+    private QuizReviewDAOImpl reviewDAO;
 
     @BeforeClass
     public static void setUpDatabase() throws SQLException {
@@ -41,9 +42,8 @@ public class QuizReviewDAOTest {
 
     @Before
     public void setUp() throws SQLException {
-        reviewDAO = new QuizReviewDAO(dataSource);
+        reviewDAO = new QuizReviewDAOImpl(dataSource);
 
-        // Clear reviews table before each test
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute("DELETE FROM quiz_reviews");
@@ -60,17 +60,13 @@ public class QuizReviewDAOTest {
 
     @Test
     public void testAddReview() throws SQLException {
-        // Create a sample review
         QuizReview review = createSampleReview(1, 1, "Great quiz!");
 
-        // Add the review
         boolean added = reviewDAO.addReview(review);
 
-        // Verify
         assertTrue(added);
         assertTrue(review.getId() > 0);
 
-        // Verify the review is retrievable
         QuizReview retrievedReview = reviewDAO.findByUserAndQuiz(1, 1);
         assertNotNull(retrievedReview);
         assertEquals("Great quiz!", retrievedReview.getReviewText());
@@ -78,18 +74,14 @@ public class QuizReviewDAOTest {
 
     @Test
     public void testAddReviewUpdate() throws SQLException {
-        // Create and add a sample review
         QuizReview review = createSampleReview(1, 1, "Initial review.");
         reviewDAO.addReview(review);
 
-        // Update the review
         QuizReview updatedReview = createSampleReview(1, 1, "Updated review!");
         boolean updated = reviewDAO.addReview(updatedReview);
 
-        // Verify
         assertTrue(updated);
 
-        // Verify the review was updated
         QuizReview retrievedReview = reviewDAO.findByUserAndQuiz(1, 1);
         assertNotNull(retrievedReview);
         assertEquals("Updated review!", retrievedReview.getReviewText());
@@ -97,7 +89,6 @@ public class QuizReviewDAOTest {
 
     @Test
     public void testFindByUserAndQuiz() throws SQLException {
-        // Create and add sample reviews
         QuizReview review1 = createSampleReview(1, 1, "Review 1");
         QuizReview review2 = createSampleReview(1, 2, "Review 2");
         QuizReview review3 = createSampleReview(2, 1, "Review 3");
@@ -106,13 +97,11 @@ public class QuizReviewDAOTest {
         reviewDAO.addReview(review2);
         reviewDAO.addReview(review3);
 
-        // Find reviews
         QuizReview found1 = reviewDAO.findByUserAndQuiz(1, 1);
         QuizReview found2 = reviewDAO.findByUserAndQuiz(1, 2);
         QuizReview found3 = reviewDAO.findByUserAndQuiz(2, 1);
         QuizReview notFound = reviewDAO.findByUserAndQuiz(3, 3);
 
-        // Verify
         assertNotNull(found1);
         assertEquals("Review 1", found1.getReviewText());
 
@@ -127,7 +116,6 @@ public class QuizReviewDAOTest {
 
     @Test
     public void testFindByQuiz() throws SQLException {
-        // Create and add sample reviews
         QuizReview review1 = createSampleReview(1, 1, "First review");
         QuizReview review2 = createSampleReview(2, 1, "Second review");
         QuizReview review3 = createSampleReview(3, 1, "Third review");
@@ -138,12 +126,10 @@ public class QuizReviewDAOTest {
         reviewDAO.addReview(review3);
         reviewDAO.addReview(review4);
 
-        // Find reviews for quiz 1
         List<QuizReview> reviewsQuiz1 = reviewDAO.findByQuiz(1);
         List<QuizReview> reviewsQuiz2 = reviewDAO.findByQuiz(2);
         List<QuizReview> reviewsQuiz3 = reviewDAO.findByQuiz(3);
 
-        // Verify
         assertEquals(3, reviewsQuiz1.size());
         assertEquals(1, reviewsQuiz2.size());
         assertEquals(0, reviewsQuiz3.size());
@@ -151,18 +137,14 @@ public class QuizReviewDAOTest {
 
     @Test
     public void testUpdateReview() throws SQLException {
-        // Create and add a sample review
         QuizReview review = createSampleReview(1, 1, "Initial review text");
         reviewDAO.addReview(review);
 
-        // Update the review
         review.setReviewText("Updated review text");
         boolean updated = reviewDAO.updateReview(review);
 
-        // Verify
         assertTrue(updated);
 
-        // Verify the review was updated
         QuizReview retrievedReview = reviewDAO.findByUserAndQuiz(1, 1);
         assertNotNull(retrievedReview);
         assertEquals("Updated review text", retrievedReview.getReviewText());
@@ -170,51 +152,40 @@ public class QuizReviewDAOTest {
 
     @Test
     public void testDeleteReview() throws SQLException {
-        // Create and add a sample review
         QuizReview review = createSampleReview(1, 1, "Review to be deleted");
         reviewDAO.addReview(review);
 
-        // Verify it exists
         QuizReview beforeDelete = reviewDAO.findByUserAndQuiz(1, 1);
         assertNotNull(beforeDelete);
 
-        // Delete the review
         boolean deleted = reviewDAO.deleteReview(1, 1);
 
-        // Verify
         assertTrue(deleted);
 
-        // Verify it no longer exists
         QuizReview afterDelete = reviewDAO.findByUserAndQuiz(1, 1);
         assertNull(afterDelete);
     }
 
     @Test
     public void testDeleteReviewNonExistent() throws SQLException {
-        // Try to delete a non-existent review
         boolean deleted = reviewDAO.deleteReview(999, 999);
 
-        // Verify
         assertFalse(deleted);
     }
 
     @Test
     public void testLongReviewText() throws SQLException {
-        // Create a very long review text
         StringBuilder longText = new StringBuilder();
         for (int i = 0; i < 100; i++) {
             longText.append("This is a long review text that should be stored properly. ");
         }
         String veryLongText = longText.toString();
 
-        // Create and add a review with long text
         QuizReview review = createSampleReview(1, 1, veryLongText);
         reviewDAO.addReview(review);
 
-        // Retrieve the review
         QuizReview retrievedReview = reviewDAO.findByUserAndQuiz(1, 1);
 
-        // Verify the long text was stored correctly
         assertEquals(veryLongText, retrievedReview.getReviewText());
     }
 }

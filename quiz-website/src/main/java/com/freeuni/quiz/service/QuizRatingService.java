@@ -1,6 +1,6 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.DAO.QuizRatingDAO;
+import com.freeuni.quiz.DAO.impl.QuizRatingDAOImpl;
 import com.freeuni.quiz.DTO.QuizRatingDTO;
 import com.freeuni.quiz.bean.QuizRating;
 import com.freeuni.quiz.converter.QuizRatingConverter;
@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 public class QuizRatingService {
-    private final QuizRatingDAO ratingDAO;
+    private final QuizRatingDAOImpl ratingDAO;
 
     public QuizRatingService(DataSource dataSource) {
-        this.ratingDAO = new QuizRatingDAO(dataSource);
+        this.ratingDAO = new QuizRatingDAOImpl(dataSource);
     }
 
     public boolean rateQuiz(int userId, long quizId, int rating) throws SQLException {

@@ -10,8 +10,6 @@ public class QuizReview {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
-    private String userName;
-    private String userImageURL;
 
     public QuizReview() {
     }
@@ -70,19 +68,4 @@ public class QuizReview {
         this.updatedAt = updatedAt;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getUserImageURL() {
-        return userImageURL;
-    }
-
-    public void setUserImageURL(String userImageURL) {
-        this.userImageURL = userImageURL;
-    }
 }

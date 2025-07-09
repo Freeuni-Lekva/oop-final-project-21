@@ -17,8 +17,6 @@ public class QuizReviewConverter {
         dto.setReviewText(review.getReviewText());
         dto.setCreatedAt(review.getCreatedAt());
         dto.setUpdatedAt(review.getUpdatedAt());
-        dto.setUserName(review.getUserName());
-        dto.setUserImageURL(review.getUserImageURL());
 
         return dto;
     }
@@ -35,8 +33,6 @@ public class QuizReviewConverter {
         review.setReviewText(dto.getReviewText());
         review.setCreatedAt(dto.getCreatedAt());
         review.setUpdatedAt(dto.getUpdatedAt());
-        review.setUserName(dto.getUserName());
-        review.setUserImageURL(dto.getUserImageURL());
 
         return review;
     }

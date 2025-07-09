@@ -1,6 +1,6 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.DAO.QuizReviewDAO;
+import com.freeuni.quiz.DAO.impl.QuizReviewDAOImpl;
 import com.freeuni.quiz.DTO.QuizReviewDTO;
 import com.freeuni.quiz.bean.QuizReview;
 import com.freeuni.quiz.converter.QuizReviewConverter;
@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QuizReviewService {
-    private final QuizReviewDAO reviewDAO;
+    private final QuizReviewDAOImpl reviewDAO;
 
     public QuizReviewService(DataSource dataSource) {
-        this.reviewDAO = new QuizReviewDAO(dataSource);
+        this.reviewDAO = new QuizReviewDAOImpl(dataSource);
     }
 
     public boolean addOrUpdateReview(int userId, long quizId, String reviewText) throws SQLException {
