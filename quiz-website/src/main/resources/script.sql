@@ -14,11 +14,11 @@ CREATE TABLE users (
 );
 CREATE TABLE friendships (
                         id INT AUTO_INCREMENT PRIMARY KEY,
-                        friendSender_id INT NOT NULL,
-                        friendReceiver_id INT  NOT NULL,
-                        FOREIGN KEY (friendSender_id) REFERENCES users(id) ON DELETE CASCADE,
-                        FOREIGN KEY (friendReceiver_id) REFERENCES users(id) ON DELETE CASCADE,
-                        UNIQUE (friendSender_id, friendReceiver_id)
+                        friendSenderId INT NOT NULL,
+                        friendReceiverId INT  NOT NULL,
+                        FOREIGN KEY (friendSenderId) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (friendReceiverId) REFERENCES users(id) ON DELETE CASCADE,
+                        UNIQUE (friendSenderId, friendReceiverId)
 );
 CREATE TABLE friendship_requests (
                         id INT AUTO_INCREMENT PRIMARY KEY,

@@ -47,8 +47,7 @@ public class FriendshipRequestDAOTest {
     }
 
     private FriendshipRequest createSampleRequest() {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
-        return new FriendshipRequest(1, 2, now);
+        return new FriendshipRequest(1, 2);
     }
 
     @Test
@@ -86,8 +85,8 @@ public class FriendshipRequestDAOTest {
 
     @Test
     public void testFindAll() throws SQLException {
-        dao.addFriendshipRequest(new FriendshipRequest(1, 2, new Timestamp(System.currentTimeMillis())));
-        dao.addFriendshipRequest(new FriendshipRequest(3, 4, new Timestamp(System.currentTimeMillis())));
+        dao.addFriendshipRequest(new FriendshipRequest(1, 2));
+        dao.addFriendshipRequest(new FriendshipRequest(3, 4));
 
         List<FriendshipRequest> all = dao.findAll();
         assertEquals(2, all.size());

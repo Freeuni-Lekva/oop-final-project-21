@@ -4,11 +4,11 @@
   UserDTO user = (UserDTO) request.getAttribute("user");
   boolean isOwner = Boolean.TRUE.equals(request.getAttribute("isOwner"));
 %>
-
 <!DOCTYPE html>
 <html>
 <head>
   <title><%= user.getUserName() %>'s Profile</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/buttons.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,62 +35,18 @@
       font-weight: bold;
       font-size: 16px;
       text-align: center;
-      line-height: 150px; /* vertical center text */
-    }
-    .no-image-placeholder {
-      cursor: default;
-    }
-    h2 {
-      margin-top: 1rem;
-      text-align: center;
-    }
-    .profile-info {
-      margin-top: 1rem;
-      max-width: 350px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .profile-info p {
-      margin: 6px 0;
-      font-size: 16px;
+      line-height: 150px;
     }
     .profile-info p strong {
       display: inline-block;
-      width: 90px; /* align all labels on same x */
-    }
-    .profile-info p.about {
-      color: #555;
+      width: 90px;
     }
     .button-container {
       margin-top: 2rem;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-    }
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      text-decoration: none;
-      text-align: center;
-      display: inline-block;
-      transition: background-color 0.3s;
-    }
-    .btn-edit {
-      background-color: #007bff;
-      color: white;
-    }
-    .btn-edit:hover {
-      background-color: #0056b3;
-    }
-    .btn-logout {
-      background-color: #dc3545;
-      color: white;
-    }
-    .btn-logout:hover {
-      background-color: #c82333;
+      gap: 1rem;
     }
   </style>
 </head>
@@ -99,37 +55,51 @@
   <% if (user.getImageURL() != null && !user.getImageURL().isEmpty()) { %>
   <img class="profile-image" src="<%= user.getImageURL() %>" alt="Profile Image" />
   <% } else { %>
-  <div class="profile-image no-image-placeholder">No Image</div>
+  <div class="profile-image">No Image</div>
   <% } %>
-
-  <!-- Show username on top -->
   <h2><%= user.getUserName() %></h2>
-
   <div class="profile-info">
     <p><strong>Username:</strong> <%= user.getUserName() %></p>
     <p><strong>First Name:</strong> <%= user.getFirstName() %></p>
     <p><strong>Last Name:</strong> <%= user.getLastName() %></p>
     <p><strong>Email:</strong> <%= user.getEmail() %></p>
-
     <% if (user.getBio() != null && !user.getBio().isEmpty()) { %>
-    <p class="about"><strong>About:</strong> <%= user.getBio() %></p>
+    <p><strong>About:</strong> <%= user.getBio() %></p>
     <% } %>
   </div>
-
   <div class="button-container">
-    <a href="home.jsp" class="btn btn-home">← Back to Homepage</a>
-
+    <a href="home.jsp" class="btn btn-send">← Back to Homepage</a>
     <% if (isOwner) { %>
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
-    <% } else { %>
-    <!-- Optional for other users -->
-    <form action="send-friend-request" method="post">
-      <input type="hidden" name="receiverId" value="<%= user.getId() %>">
+    <% } else if (Boolean.TRUE.equals(request.getAttribute("areFriends"))) { %>
+    <span class="status-message success friend-status-msg">You and <%= user.getUserName() %> are friends ✓</span>
+    <form class="unfriend-form" data-user-id="<%= user.getId() %>">
+      <button type="submit" class="btn btn-unfriend">Remove Friend</button>
     </form>
+    <% } else if (request.getAttribute("incomingRequest") != null) { %>
+    <form class="friend-response-form"
+          data-sender-id="<%= user.getId() %>"
+          data-request-id="<%= request.getAttribute("requestId") %>">
+      <button type="submit" name="action" value="accept" class="btn btn-accept">Accept</button>
+      <button type="submit" name="action" value="decline" class="btn btn-decline">Decline</button>
+    </form>
+    <% } else if (request.getAttribute("requestSent") != null) { %>
+    <button class="btn btn-disabled" disabled>Request Sent ✓</button>
+    <% } else if (session.getAttribute("user") != null) { %>
+    <form class="friend-request-form" data-receiver-id="<%= user.getId() %>">
+      <button type="submit" class="btn btn-send">Send Friend Request</button>
+    </form>
+    <% } else { %>
+    <span class="status-message error">You must be logged in to send friend requests.</span>
     <% } %>
   </div>
-
 </div>
+<script>
+  window.contextPath = '<%= request.getContextPath() %>';
+</script>
+<script src="${pageContext.request.contextPath}/js/respondToFriendRequest.js"></script>
+<script src="${pageContext.request.contextPath}/js/sendFriendRequest.js"></script>
+<script src="${pageContext.request.contextPath}/js/removeFriend.js"></script>
 </body>
 </html>

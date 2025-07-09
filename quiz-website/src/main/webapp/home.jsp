@@ -112,8 +112,8 @@
     <% } %>
     <div class="username"><%= user.getUserName() %></div>
 
-    <a href="profile">Profile</a>
-    <a href="#">Friend Requests</a>
+    <a href="${pageContext.request.contextPath}/profile">Profile</a>
+    <a href="${pageContext.request.contextPath}/friendshipRequests">Friend Requests</a>
     <a href="#">Messages</a>
     <a href="#">Challenges</a>
     <a href="#">History</a>
@@ -163,21 +163,18 @@
         <div class="box">
             <h2>Popular Quizzes</h2>
             <div class="box-content">
-                <!-- Popular quiz content here -->
                 <p>Example: Java Basics Quiz - 98% success rate</p>
             </div>
         </div>
         <div class="box">
             <h2>Recent Quizzes</h2>
             <div class="box-content">
-                <!-- Recent quiz content here -->
                 <p>Example: Python Loops Quiz added 2 hours ago</p>
             </div>
         </div>
         <div class="box wide-box">
             <h2>See what your friends are up to</h2>
             <div class="box-content">
-                <!-- Friend activity -->
                 <p><strong>alice123</strong> completed <em>HTML Basics Quiz</em></p>
                 <p><strong>bob_the_dev</strong> completed <em>JavaScript Challenge</em></p>
             </div>
