@@ -73,7 +73,10 @@
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
     <% } else if (Boolean.TRUE.equals(request.getAttribute("areFriends"))) { %>
-    <span class="status-message success">You and <%= user.getUserName() %> are friends ✓</span>
+    <span class="status-message success friend-status-msg">You and <%= user.getUserName() %> are friends ✓</span>
+    <form class="unfriend-form" data-user-id="<%= user.getId() %>">
+      <button type="submit" class="btn btn-unfriend">Remove Friend</button>
+    </form>
     <% } else if (request.getAttribute("incomingRequest") != null) { %>
     <form class="friend-response-form"
           data-sender-id="<%= user.getId() %>"
@@ -97,5 +100,6 @@
 </script>
 <script src="${pageContext.request.contextPath}/js/respondToFriendRequest.js"></script>
 <script src="${pageContext.request.contextPath}/js/sendFriendRequest.js"></script>
+<script src="${pageContext.request.contextPath}/js/removeFriend.js"></script>
 </body>
 </html>

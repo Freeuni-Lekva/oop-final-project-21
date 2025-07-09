@@ -69,3 +69,9 @@
 .status-message.neutral {
     color: gray;
 }
+.btn-unfriend {
+    background-color: #6c757d; /* gray */
+}
+.btn-unfriend:hover {
+    background-color: #5a6268;
+}
