@@ -68,6 +68,7 @@ public class FriendshipResponseServlet extends HttpServlet {
             }
 
             if (success) {
+                resp.setContentType("application/json");
                 resp.setStatus(HttpServletResponse.SC_OK);
                 resp.getWriter().write("{\"message\": \"Friend request " + action + "ed successfully\"}");
             } else {

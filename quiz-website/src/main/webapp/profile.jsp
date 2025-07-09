@@ -103,7 +103,6 @@
   <div class="profile-image no-image-placeholder">No Image</div>
   <% } %>
 
-  <!-- Show username on top -->
   <h2><%= user.getUserName() %></h2>
 
   <div class="profile-info">
@@ -123,32 +122,37 @@
     <% if (isOwner) { %>
     <a href="edit-profile" class="btn btn-edit">Edit Profile</a>
     <a href="logout" class="btn btn-logout">Logout</a>
-    <% } else if (requestId != null) { %>
-    <!-- A request was sent to me by this user -->
-    <form method="post" action="${pageContext.request.contextPath}/respondToFriendRequest" style="display:inline;">
-      <input type="hidden" name="action" value="accept">
-      <input type="hidden" name="requestId" value="<%= requestId %>">
-      <input type="hidden" name="senderId" value="<%= user.getId() %>">
-      <button type="submit" class="btn btn-edit">Accept</button>
+    <% } else if (Boolean.TRUE.equals(request.getAttribute("areFriends"))) { %>
+    <p style="color: green; font-weight: bold;">You and <%= user.getUserName() %> are friends ✓</p>
+    <% } else if (request.getAttribute("incomingRequest") != null) { %>
+    <form class="friend-response-form"
+          data-sender-id="<%= user.getId() %>"
+          data-request-id="<%= request.getAttribute("requestId") %>">
+      <button type="submit" name="action" value="accept" class="btn btn-accept">Accept</button>
+      <button type="submit" name="action" value="decline" class="btn btn-decline">Decline</button>
     </form>
-    <form method="post" action="${pageContext.request.contextPath}/respondToFriendRequest" style="display:inline;">
-      <input type="hidden" name="action" value="decline">
-      <input type="hidden" name="requestId" value="<%= requestId %>">
-      <input type="hidden" name="senderId" value="<%= user.getId() %>">
-      <button type="submit" class="btn btn-logout">Decline</button>
-    </form>
-    <% } else { %>
-    <form class="friend-request-form" data-receiver-id="<%= user.getId() %>">
-      <button type="submit" class="friend-request-btn">Send Friend Request</button>
-    </form>
-    <% } %>
 
+    <% } else if (request.getAttribute("requestSent") != null) { %>
+    <p style="color: gray; font-style: italic;">Request sent</p>
+
+    <% } else if (session.getAttribute("user") != null) { %>
+    <form class="friend-request-form" data-receiver-id="<%= user.getId() %>">
+      <button type="submit" class="btn btn-send-request">Send Friend Request</button>
+    </form>
+
+    <% } else { %>
+
+    <p style="color: red;">You must be logged in to send friend requests.</p>
+    <% } %>
   </div>
+
 
 </div>
 <script>
   window.contextPath = '<%= request.getContextPath() %>';
 </script>
+<script src="${pageContext.request.contextPath}/js/respondToFriendRequest.js?v=2"></script>
+
 <script src="${pageContext.request.contextPath}/js/sendFriendRequest.js?v=2"></script>
 </body>
 </html>

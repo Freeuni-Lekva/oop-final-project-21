@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     forms.forEach(form => {
         form.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevent page reload
+            e.preventDefault();
 
             const receiverId = form.dataset.receiverId;
 
             try {
-                const response = await fetch(`${window.location.origin}${contextPath}/sendFriendshipRequest`,
+                const response = await fetch(`${window.contextPath}/sendFriendshipRequest`,
                     {
                     method: 'POST',
                     headers: {
@@ -18,8 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    // Change button text
-                    const button = form.querySelector('.friend-request-btn');
+                    const button = form.querySelector('.btn-send-request');
                     button.textContent = 'Request Sent';
                     button.disabled = true;
                 } else {

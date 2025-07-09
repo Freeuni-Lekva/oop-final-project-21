@@ -3,6 +3,7 @@ package com.freeuni.quiz.servlets;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.FriendshipRequest;
 import com.freeuni.quiz.service.FriendshipRequestService;
+import com.freeuni.quiz.service.FriendshipService;
 import com.freeuni.quiz.service.UserService;
 
 import javax.servlet.ServletException;
@@ -15,12 +16,14 @@ import java.io.IOException;
 public class ProfileServlet extends HttpServlet {
     private UserService userService;
     private FriendshipRequestService friendshipRequestService;
+    private FriendshipService friendshipService;
 
     @Override
     public void init() {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         userService = new UserService(dataSource);
         friendshipRequestService = new FriendshipRequestService(dataSource);
+        friendshipService = new FriendshipService(dataSource);
     }
 
 
@@ -43,31 +46,36 @@ public class ProfileServlet extends HttpServlet {
                 }
                 profileUser = currentUser;
             } else {
-
                 profileUser = userService.findByUsername(usernameParam);
                 if (profileUser == null) {
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found");
                     return;
                 }
             }
-            Integer friendshipRequestId = null;
 
-            if (currentUser != null && !currentUser.getUserName().equals(profileUser.getUserName())) {
-                FriendshipRequest pendingRequest = friendshipRequestService.getRequest(profileUser.getId(), currentUser.getId());
-                if (pendingRequest != null) {
-                    friendshipRequestId = pendingRequest.getId();
+            boolean isOwner = currentUser != null && currentUser.getUserName().equals(profileUser.getUserName());
+            req.setAttribute("isOwner", isOwner);
+            if (!isOwner && currentUser != null) {
+                FriendshipRequest requestSentByMe = friendshipRequestService.getRequest(currentUser.getId(), profileUser.getId());
+                FriendshipRequest requestSentToMe = friendshipRequestService.getRequest(profileUser.getId(), currentUser.getId());
+
+                if (requestSentToMe != null) {
+                    req.setAttribute("requestId", requestSentToMe.getId());
+                    req.setAttribute("incomingRequest", true);
+                } else if (requestSentByMe != null) {
+                    req.setAttribute("requestSent", true);
                 }
+                boolean areFriends=friendshipService.areFriends(currentUser.getId(), profileUser.getId());
+                req.setAttribute("areFriends", areFriends);
             }
 
-            req.setAttribute("requestId", friendshipRequestId);
-
             req.setAttribute("user", profileUser);
-            req.setAttribute("isOwner", currentUser != null && currentUser.getUserName().equals(profileUser.getUserName()));
             req.getRequestDispatcher("profile.jsp").forward(req, resp);
 
         } catch (Exception e) {
             throw new ServletException("Failed to load profile", e);
         }
     }
+
 
 }

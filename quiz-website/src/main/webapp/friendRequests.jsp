@@ -83,22 +83,35 @@
         for (Map.Entry<FriendshipRequest, UserDTO> entry : requestsWithSenders.entrySet()) {
             UserDTO sender = entry.getValue();
     %>
-    <a class="request-card" href="<%= request.getContextPath() %>/profile?user=<%= sender.getUserName() %>" style="text-decoration:none; color:inherit;">
+    <div class="request-card">
         <img class="profile-img" src="<%= sender.getImageURL() != null && !sender.getImageURL().isEmpty()
-                ? sender.getImageURL()
-                : "https://via.placeholder.com/60" %>" alt="Sender Image">
+            ? sender.getImageURL()
+            : "https://via.placeholder.com/60" %>" alt="Sender Image">
 
         <div class="sender-info">
             <h3><%= sender.getUserName() %></h3>
             <p><%= sender.getFirstName() %> <%= sender.getLastName() %></p>
+
+            <form class="friend-response-form" style="display:inline;"
+                  data-sender-id="<%= sender.getId() %>"
+                  data-request-id="<%= entry.getKey().getId() %>">
+                <button type="submit" name="action" value="accept">Accept</button>
+                <button type="submit" name="action" value="decline">Decline</button>
+            </form>
         </div>
-    </a>
+    </div>
+
 
     <%
             }
         }
     %>
 </div>
+<script>
+    window.contextPath = '<%= request.getContextPath() %>';
+</script>
+<script src="${pageContext.request.contextPath}/js/respondToFriendRequest.js?v=2"></script>
+
 </body>
 </html>
 

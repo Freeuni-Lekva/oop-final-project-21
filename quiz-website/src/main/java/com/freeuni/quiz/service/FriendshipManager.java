@@ -20,7 +20,6 @@ public class FriendshipManager {
     }
 
     public boolean declineFriendRequest(int senderId, int receiverId, int friendshipRequestId) throws Exception {
-        // Just delete the friend request
         if (!friendshipRequestService.requestExists(senderId, receiverId)) {
             return false;
         }
