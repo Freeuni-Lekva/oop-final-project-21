@@ -41,4 +41,7 @@ public class QuizReviewService {
 
         return dtos;
     }
+    public boolean deleteReview(int userId, long quizId) throws SQLException {
+        return reviewDAO.deleteReview(userId, quizId);
+    }
 }
