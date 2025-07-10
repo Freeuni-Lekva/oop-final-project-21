@@ -117,8 +117,10 @@
     <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
     <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
     <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
-    <a href="#">💬 Messages</a>
     <a href="#">🏆 Achievements</a>
+    <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+    <a href="#">Challenges</a>
+    <a href="#">History</a>
 </div>
 
 <div class="content">
@@ -167,7 +169,7 @@
                 <p>⚡ <strong>Python Fundamentals</strong> - 156 attempts</p>
                 <p>🎯 <strong>Web Development</strong> - 4.8/5 rating</p>
                 <div style="margin-top: 15px;">
-                    <a href="${pageContext.request.contextPath}/quiz-browser" 
+                    <a href="${pageContext.request.contextPath}/quiz-browser"
                        style="color: #8a2be2; text-decoration: none; font-weight: bold;">
                         View All Quizzes →
                     </a>
@@ -178,19 +180,19 @@
             <h2>➕ Quick Actions</h2>
             <div class="box-content">
                 <p>
-                    <a href="${pageContext.request.contextPath}/quiz-creator" 
+                    <a href="${pageContext.request.contextPath}/quiz-creator"
                        style="color: #28a745; text-decoration: none; font-weight: bold;">
                         📝 Create New Quiz
                     </a>
                 </p>
                 <p>
-                    <a href="${pageContext.request.contextPath}/quiz-manager" 
+                    <a href="${pageContext.request.contextPath}/quiz-manager"
                        style="color: #007bff; text-decoration: none; font-weight: bold;">
                         📊 My Quiz Dashboard
                     </a>
                 </p>
                 <p>
-                    <a href="${pageContext.request.contextPath}/quiz-browser" 
+                    <a href="${pageContext.request.contextPath}/quiz-browser"
                        style="color: #6a5acd; text-decoration: none; font-weight: bold;">
                         🔍 Browse & Take Quizzes
                     </a>
@@ -204,9 +206,9 @@
                 <p>🎯 <strong>Take quizzes from others</strong> - Learn from diverse topics</p>
                 <p>📈 <strong>Track your progress</strong> - See how you improve over time</p>
                 <div style="margin-top: 15px;">
-                    <a href="${pageContext.request.contextPath}/quiz-creator" 
-                       style="background: linear-gradient(45deg, #28a745, #20c997); color: white; 
-                              padding: 10px 20px; border-radius: 8px; text-decoration: none; 
+                    <a href="${pageContext.request.contextPath}/quiz-creator"
+                       style="background: linear-gradient(45deg, #28a745, #20c997); color: white;
+                              padding: 10px 20px; border-radius: 8px; text-decoration: none;
                               font-weight: bold; display: inline-block;">
                         🚀 Create Your First Quiz
                     </a>
