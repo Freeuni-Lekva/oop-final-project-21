@@ -2,15 +2,17 @@ package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.Category;
 import com.freeuni.quiz.repository.CategoryRepository;
+import com.freeuni.quiz.repository.impl.CategoryRepositoryImpl;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
+    public CategoryService(DataSource dataSource) {
+        this.categoryRepository = new CategoryRepositoryImpl(dataSource);
     }
 
     public Long createCategory(Category category) {
