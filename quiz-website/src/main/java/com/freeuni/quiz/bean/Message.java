@@ -3,13 +3,13 @@ package com.freeuni.quiz.bean;
 import java.time.LocalDateTime;
 
 public class Message {
-    private int id;
+    private Long id;
     private int senderId;
     private int receiverId;
     private String content;
     private LocalDateTime sentAt;
 
-    public Message(int id, int senderId, int receiverId, String content, LocalDateTime sentAt) {
+    public Message(Long id, int senderId, int receiverId, String content, LocalDateTime sentAt) {
         this.id = id;
         this.senderId = senderId;
         this.receiverId = receiverId;
@@ -17,7 +17,7 @@ public class Message {
         this.sentAt = sentAt;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 

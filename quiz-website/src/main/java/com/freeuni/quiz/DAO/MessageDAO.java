@@ -16,21 +16,22 @@ public class MessageDAO {
     public MessageDAO(DataSource dataSource) {
         this.dataSource = dataSource;
     }
-    public Message getMessageById(int id) throws SQLException {
+
+    public Message getMessageById(Long id) throws SQLException {
         String sql = "SELECT * FROM messages WHERE id = ?";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return mapRow(rs); // your existing method
+                return mapRow(rs);
             } else {
                 throw new SQLException("Message not found.");
             }
         }
     }
 
-    public int sendMessage(int senderId, int receiverId, String content) throws SQLException {
+    public Long sendMessage(int senderId, int receiverId, String content) throws SQLException {
         String sql = "INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -43,8 +44,7 @@ public class MessageDAO {
 
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
-                int id = rs.getInt(1);
-                return id;
+                return rs.getLong(1);
             } else {
                 throw new SQLException("Could not get generated ID");
             }
@@ -80,7 +80,7 @@ public class MessageDAO {
         }
     }
 
-    public List<Message> getMessagesBefore(int user1, int user2, LocalDateTime beforeTime, int beforeId) throws SQLException {
+    public List<Message> getMessagesBefore(int user1, int user2, LocalDateTime beforeTime, Long beforeId) throws SQLException {
         String sql = """
         SELECT * FROM messages 
         WHERE ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
@@ -97,7 +97,7 @@ public class MessageDAO {
             stmt.setInt(4, user1);
             stmt.setTimestamp(5, Timestamp.valueOf(beforeTime));
             stmt.setTimestamp(6, Timestamp.valueOf(beforeTime));
-            stmt.setInt(7, beforeId);
+            stmt.setLong(7, beforeId);
             stmt.setInt(8, PAGE_SIZE);
 
             ResultSet rs = stmt.executeQuery();
@@ -111,7 +111,7 @@ public class MessageDAO {
 
     private Message mapRow(ResultSet rs) throws SQLException {
         return new Message(
-                rs.getInt("id"),
+                rs.getLong("id"),
                 rs.getInt("sender_id"),
                 rs.getInt("receiver_id"),
                 rs.getString("content"),

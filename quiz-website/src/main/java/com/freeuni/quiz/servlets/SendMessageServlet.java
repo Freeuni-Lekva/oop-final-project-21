@@ -50,7 +50,7 @@ public class SendMessageServlet extends HttpServlet {
 
         try {
 
-            int id = messageDAO.sendMessage(senderId, receiverId, content);
+            Long id = messageDAO.sendMessage(senderId, receiverId, content);
             Message message = messageDAO.getMessageById(id);
             resp.setContentType("application/json");
             Gson gson = new GsonBuilder()

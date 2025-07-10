@@ -147,7 +147,6 @@ public class UserDAO {
             return Collections.emptyMap();
         }
 
-        // Build SQL with IN clause placeholders, e.g. "SELECT * FROM users WHERE id IN (?, ?, ...)"
         StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE id IN (");
         sql.append(userIds.stream().map(id -> "?").collect(Collectors.joining(",")));
         sql.append(")");

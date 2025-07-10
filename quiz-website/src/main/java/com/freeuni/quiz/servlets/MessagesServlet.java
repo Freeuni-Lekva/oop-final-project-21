@@ -57,7 +57,7 @@ public class MessagesServlet extends HttpServlet {
         try {
             if (beforeStr != null && beforeIdStr != null) {
                 LocalDateTime beforeTime = LocalDateTime.parse(beforeStr);
-                int beforeId = Integer.parseInt(beforeIdStr);
+                Long beforeId = Long.parseLong(beforeIdStr);
                 messages = messageDAO.getMessagesBefore(currentUserId, otherUserId, beforeTime, beforeId);
             } else {
                 messages = messageDAO.getRecentMessages(currentUserId, otherUserId);

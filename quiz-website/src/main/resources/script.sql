@@ -31,7 +31,7 @@ CREATE TABLE friendship_requests (
 );
 
 CREATE TABLE messages (
-                          id INT PRIMARY KEY AUTO_INCREMENT,
+                          id BIGINT PRIMARY KEY AUTO_INCREMENT,
                           sender_id INT NOT NULL,
                           receiver_id INT NOT NULL,
                           content TEXT NOT NULL,

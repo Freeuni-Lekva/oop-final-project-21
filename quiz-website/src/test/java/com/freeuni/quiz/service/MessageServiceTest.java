@@ -10,7 +10,6 @@ import org.junit.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 
 import static org.junit.Assert.*;
@@ -70,16 +69,13 @@ public class MessageServiceTest {
     }
     @Test
     public void testGetConversationsWithProfileDetails() throws SQLException {
-        // Create 3 users
         User u1 = createUser("john", "John", "Doe", "john@example.com");
         User u2 = createUser("alice", "Alice", "Smith", "alice@example.com");
         User u3 = createUser("bob", "Bob", "Builder", "bob@example.com");
 
-        // Send messages
-        int m1Id = messageDAO.sendMessage(u1.getId(), u2.getId(), "Hi Alice");
-        int m2Id = messageDAO.sendMessage(u3.getId(), u1.getId(), "Hey John");
+        Long m1Id = messageDAO.sendMessage(u1.getId(), u2.getId(), "Hi Alice");
+        Long m2Id = messageDAO.sendMessage(u3.getId(), u1.getId(), "Hey John");
 
-        // Fetch the message-user map
         LinkedHashMap<Message, UserDTO> result = messageService.getConversationsWithProfileDetails(u1.getId());
 
         assertEquals(2, result.size());

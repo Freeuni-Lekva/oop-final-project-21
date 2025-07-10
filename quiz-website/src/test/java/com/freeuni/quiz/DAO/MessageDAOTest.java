@@ -52,7 +52,7 @@ public class MessageDAOTest {
         int receiverId = 2;
         String content = "Hello there!";
 
-        int messageId = messageDAO.sendMessage(senderId, receiverId, content);
+        Long messageId = messageDAO.sendMessage(senderId, receiverId, content);
         assertTrue(messageId > 0);
 
         Message msg = messageDAO.getMessageById(messageId);
@@ -78,11 +78,11 @@ public class MessageDAOTest {
     public void testGetMessagesBefore() throws SQLException, InterruptedException {
         for (int i = 0; i < 5; i++) {
             messageDAO.sendMessage(1, 2, "Msg " + i);
-            Thread.sleep(10); // Ensure different timestamps
+            Thread.sleep(10);
         }
 
         List<Message> all = messageDAO.getRecentMessages(1, 2);
-        Message beforeMessage = all.get(3); // second oldest
+        Message beforeMessage = all.get(3);
         List<Message> older = messageDAO.getMessagesBefore(1, 2, beforeMessage.getSentAt(), beforeMessage.getId());
 
         assertEquals(3, older.size());
@@ -96,12 +96,12 @@ public class MessageDAOTest {
         messageDAO.sendMessage(1, 3, "Third");
 
         List<Message> convos = messageDAO.getLatestConversations(1);
-        assertEquals(2, convos.size()); // conversations with (1,2) and (1,3)
+        assertEquals(2, convos.size());
     }
 
     @Test(expected = SQLException.class)
     public void testGetMessageByIdThrows() throws SQLException {
-        messageDAO.getMessageById(999); // should throw
+        messageDAO.getMessageById(999L);
     }
 }
 
