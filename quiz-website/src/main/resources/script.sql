@@ -155,3 +155,19 @@ CREATE TABLE quiz_challenges (
                                  FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
                                  UNIQUE (challenger_user_id, challenged_user_id, quiz_id)
 );
+CREATE TABLE achievements (
+                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                              name VARCHAR(100) NOT NULL,
+                              description TEXT,
+                              icon_url VARCHAR(2083),
+                              created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE user_achievements (
+                                   id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                   user_id INT NOT NULL,
+                                   achievement_id BIGINT NOT NULL,
+                                   awarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                   FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE,
+                                   UNIQUE (user_id, achievement_id)
+);
