@@ -2,32 +2,18 @@ package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
 import com.freeuni.quiz.DTO.UserDTO;
-import com.freeuni.quiz.service.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 @WebServlet("/quiz-manager")
-public class QuizManagerServlet extends HttpServlet {
-
-    private QuizService quizService;
-    private QuizSessionService sessionService;
-
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        this.quizService = new QuizService(dataSource);
-        this.sessionService = new QuizSessionService(dataSource);
-    }
+public class QuizManagerServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -126,11 +112,5 @@ public class QuizManagerServlet extends HttpServlet {
         } catch (Exception e) {
             handleError(request, response, "Error deleting quiz: " + e.getMessage());
         }
-    }
-
-    private void handleError(HttpServletRequest request, HttpServletResponse response, String message) 
-            throws ServletException, IOException {
-        request.setAttribute("errorMessage", message);
-        request.getRequestDispatcher("/WEB-INF/error.jsp").forward(request, response);
     }
 } 

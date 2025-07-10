@@ -1,35 +1,30 @@
 package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
-import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.util.SessionManager;
+import com.freeuni.quiz.DTO.UserDTO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/quiz-questions")
-public class QuizQuestionManagerServlet extends HttpServlet {
-
-    private QuizService quizService;
-    private QuestionService questionService;
-    private SessionManager sessionManager;
+public class QuizQuestionManagerServlet extends BaseServlet {
 
     @Override
     public void init() throws ServletException {
         super.init();
-        this.quizService = (QuizService) getServletContext().getAttribute("quizService");
-        this.questionService = (QuestionService) getServletContext().getAttribute("questionService");
-        this.sessionManager = new SessionManager();
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        if (requireAuth(request, response)) {
+            return;
+        }
         
         handleManageQuestions(request, response);
     }
@@ -37,6 +32,10 @@ public class QuizQuestionManagerServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        if (requireAuth(request, response)) {
+            return;
+        }
         
         String action = request.getParameter("action");
         if (action == null) {
@@ -61,19 +60,14 @@ public class QuizQuestionManagerServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
-            if (currentUser == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
+            UserDTO currentUser = getCurrentUser(request);
+            Long quizId = getLongParam(request, "quizId");
             
-            String quizIdStr = request.getParameter("quizId");
-            if (quizIdStr == null || quizIdStr.isEmpty()) {
+            if (quizId == null) {
                 response.sendRedirect("quiz-manager?action=dashboard");
                 return;
             }
             
-            Long quizId = Long.parseLong(quizIdStr);
             Quiz quiz = quizService.getQuizById(quizId).orElse(null);
             
             if (quiz == null) {
@@ -81,7 +75,7 @@ public class QuizQuestionManagerServlet extends HttpServlet {
                 return;
             }
             
-            if (!quizService.isQuizOwner(quizId, (long) currentUser.getId())) {
+            if (isQuizOwner(request, quizId)) {
                 handleError(request, response, "You don't have permission to manage questions for this quiz");
                 return;
             }
@@ -107,20 +101,16 @@ public class QuizQuestionManagerServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
-            if (currentUser == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
+            UserDTO currentUser = getCurrentUser(request);
             
             QuestionOperationData operationData = extractOperationData(request);
             
             if (isValidOperationData(operationData)) {
-                response.sendRedirect("quiz-questions?quizId=" + operationData.getQuizIdStr() + "&error=Invalid parameters");
+                redirectWithError(response, "quiz-questions?quizId=" + operationData.getQuizIdStr(), "Invalid parameters");
                 return;
             }
             
-            if (!quizService.isQuizOwner(operationData.getQuizId(), (long) currentUser.getId())) {
+            if (isQuizOwner(request, operationData.getQuizId())) {
                 handleError(request, response, "You don't have permission to modify this quiz");
                 return;
             }
@@ -136,9 +126,12 @@ public class QuizQuestionManagerServlet extends HttpServlet {
             boolean added = quizService.addQuestionToQuiz(operationData.getQuizId(), operationData.getQuestionId(), nextPosition);
             
             String message = added ? "Question added successfully" : "Failed to add question";
-            String param = added ? "message" : "error";
             
-            response.sendRedirect("quiz-questions?quizId=" + operationData.getQuizId() + "&" + param + "=" + message);
+            if (added) {
+                redirectWithSuccess(response, "quiz-questions?quizId=" + operationData.getQuizId(), message);
+            } else {
+                redirectWithError(response, "quiz-questions?quizId=" + operationData.getQuizId(), message);
+            }
             
         } catch (Exception e) {
             handleError(request, response, "Error adding question: " + e.getMessage());
@@ -149,20 +142,14 @@ public class QuizQuestionManagerServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
-            if (currentUser == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-            
             QuestionOperationData operationData = extractOperationData(request);
             
             if (isValidOperationData(operationData)) {
-                response.sendRedirect("quiz-questions?quizId=" + operationData.getQuizIdStr() + "&error=Invalid parameters");
+                redirectWithError(response, "quiz-questions?quizId=" + operationData.getQuizIdStr(), "Invalid parameters");
                 return;
             }
             
-            if (!quizService.isQuizOwner(operationData.getQuizId(), (long) currentUser.getId())) {
+            if (isQuizOwner(request, operationData.getQuizId())) {
                 handleError(request, response, "You don't have permission to modify this quiz");
                 return;
             }
@@ -170,9 +157,12 @@ public class QuizQuestionManagerServlet extends HttpServlet {
             boolean removed = quizService.removeQuestionFromQuiz(operationData.getQuizId(), operationData.getQuestionId());
             
             String message = removed ? "Question removed successfully" : "Failed to remove question";
-            String param = removed ? "message" : "error";
             
-            response.sendRedirect("quiz-questions?quizId=" + operationData.getQuizId() + "&" + param + "=" + message);
+            if (removed) {
+                redirectWithSuccess(response, "quiz-questions?quizId=" + operationData.getQuizId(), message);
+            } else {
+                redirectWithError(response, "quiz-questions?quizId=" + operationData.getQuizId(), message);
+            }
             
         } catch (Exception e) {
             handleError(request, response, "Error removing question: " + e.getMessage());
@@ -180,32 +170,19 @@ public class QuizQuestionManagerServlet extends HttpServlet {
     }
 
     private QuestionOperationData extractOperationData(HttpServletRequest request) {
-        String quizIdStr = request.getParameter("quizId");
-        String questionIdStr = request.getParameter("questionId");
+        Long quizId = getLongParam(request, "quizId");
+        Long questionId = getLongParam(request, "questionId");
         
         QuestionOperationData data = new QuestionOperationData();
-        data.setQuizIdStr(quizIdStr);
-        data.setQuestionIdStr(questionIdStr);
-        
+        data.setQuizId(quizId);
+        data.setQuestionId(questionId);
+        data.setQuizIdStr(request.getParameter("quizId"));
+
         return data;
     }
 
     private boolean isValidOperationData(QuestionOperationData data) {
-        if (data.getQuizIdStr() == null || data.getQuizIdStr().isEmpty()) {
-            return true;
-        }
-        
-        if (data.getQuestionIdStr() == null || data.getQuestionIdStr().isEmpty()) {
-            return true;
-        }
-        
-        try {
-            data.setQuizId(Long.parseLong(data.getQuizIdStr()));
-            data.setQuestionId(Long.parseLong(data.getQuestionIdStr()));
-            return false;
-        } catch (NumberFormatException e) {
-            return true;
-        }
+        return data.getQuizId() == null || data.getQuestionId() == null;
     }
 
     private List<Question> filterAvailableQuestions(List<Question> userQuestions, List<Question> quizQuestions) {
@@ -217,23 +194,15 @@ public class QuizQuestionManagerServlet extends HttpServlet {
             .collect(java.util.stream.Collectors.toList());
     }
 
-    private void handleError(HttpServletRequest request, HttpServletResponse response, String message) 
-            throws ServletException, IOException {
-        request.setAttribute("errorMessage", message);
-        request.getRequestDispatcher("/WEB-INF/error.jsp").forward(request, response);
-    }
+
 
     private static class QuestionOperationData {
         private String quizIdStr;
-        private String questionIdStr;
         private Long quizId;
         private Long questionId;
 
         public String getQuizIdStr() { return quizIdStr; }
         public void setQuizIdStr(String quizIdStr) { this.quizIdStr = quizIdStr; }
-        
-        public String getQuestionIdStr() { return questionIdStr; }
-        public void setQuestionIdStr(String questionIdStr) { this.questionIdStr = questionIdStr; }
         
         public Long getQuizId() { return quizId; }
         public void setQuizId(Long quizId) { this.quizId = quizId; }

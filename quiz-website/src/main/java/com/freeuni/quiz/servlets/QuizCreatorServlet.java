@@ -2,35 +2,25 @@ package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
 import com.freeuni.quiz.DTO.UserDTO;
-import com.freeuni.quiz.service.*;
+import com.freeuni.quiz.validators.QuizFormValidator;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
 
 @WebServlet("/quiz-creator")
-public class QuizCreatorServlet extends HttpServlet {
-
-    private QuizService quizService;
-    private CategoryService categoryService;
-
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        this.quizService = new QuizService(dataSource);
-        this.categoryService = new CategoryService(dataSource);
-    }
+public class QuizCreatorServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        if (requireAuth(request, response)) {
+            return;
+        }
         
         handleCreateForm(request, response);
     }
@@ -39,6 +29,10 @@ public class QuizCreatorServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        if (requireAuth(request, response)) {
+            return;
+        }
+        
         handleSaveQuiz(request, response);
     }
 
@@ -46,14 +40,6 @@ public class QuizCreatorServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            HttpSession session = request.getSession(false);
-            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
-            
-            if (currentUser == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-            
             List<Category> categories = categoryService.getAllActiveCategories();
             request.setAttribute("categories", categories);
             request.setAttribute("mode", "create");
@@ -69,37 +55,21 @@ public class QuizCreatorServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            HttpSession session = request.getSession(false);
-            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
+            UserDTO currentUser = getCurrentUser(request);
             
-            if (currentUser == null) {
-                response.sendRedirect("login.jsp");
-                return;
-            }
-            
-            String title = request.getParameter("title");
-            String description = request.getParameter("description");
-            String categoryIdStr = request.getParameter("categoryId");
-            String timeLimitStr = request.getParameter("timeLimit");
-            
-            if (title == null || title.trim().isEmpty()) {
-                request.setAttribute("errorMessage", "Quiz title is required");
+            String validationError = QuizFormValidator.validateQuizForm(request);
+            if (validationError != null) {
+                request.setAttribute("errorMessage", validationError);
                 handleCreateForm(request, response);
                 return;
             }
             
-            if (description == null || description.trim().isEmpty()) {
-                request.setAttribute("errorMessage", "Quiz description is required");
-                handleCreateForm(request, response);
-                return;
-            }
-            
-            Quiz quiz = createQuizFromFormData(title, description, categoryIdStr, timeLimitStr, currentUser);
+            Quiz quiz = createQuizFromFormData(request, currentUser);
             
             Long quizId = quizService.createQuiz(quiz);
             
             if (quizId != null) {
-                response.sendRedirect("quiz-editor?quizId=" + quizId + "&message=Quiz created successfully");
+                redirectWithSuccess(response, "quiz-editor?quizId=" + quizId, "Quiz created successfully");
             } else {
                 request.setAttribute("errorMessage", "Failed to create quiz");
                 handleCreateForm(request, response);
@@ -111,31 +81,23 @@ public class QuizCreatorServlet extends HttpServlet {
         }
     }
 
-    private Quiz createQuizFromFormData(String title, String description, String categoryIdStr, String timeLimitStr, UserDTO currentUser) {
+    private Quiz createQuizFromFormData(HttpServletRequest request, UserDTO currentUser) {
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String categoryIdStr = request.getParameter("categoryId");
+        
         Quiz quiz = new Quiz();
         quiz.setCreatorUserId(currentUser.getId());
         quiz.setTestTitle(title);
         quiz.setTestDescription(description);
         
-        if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+        if (isValid(categoryIdStr)) {
             quiz.setCategoryId(Long.parseLong(categoryIdStr));
         }
         
-        long timeLimit = 10L;
-        if (timeLimitStr != null && !timeLimitStr.isEmpty()) {
-            try {
-                timeLimit = Long.parseLong(timeLimitStr);
-            } catch (NumberFormatException ignored) {
-            }
-        }
+        Long timeLimit = getDoubleParam(request).longValue();
         quiz.setTimeLimitMinutes(timeLimit);
         
         return quiz;
-    }
-
-    private void handleError(HttpServletRequest request, HttpServletResponse response, String message) 
-            throws ServletException, IOException {
-        request.setAttribute("errorMessage", message);
-        request.getRequestDispatcher("/WEB-INF/error.jsp").forward(request, response);
     }
 } 
