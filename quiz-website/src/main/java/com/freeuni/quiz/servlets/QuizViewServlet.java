@@ -1,29 +1,34 @@
 package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
+import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.util.SessionManager;
+import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.util.Optional;
 
 @WebServlet("/quiz-view")
 public class QuizViewServlet extends HttpServlet {
 
     private QuizService quizService;
     private QuizSessionService sessionService;
-    private SessionManager sessionManager;
+    private QuizCompletionRepositoryImpl quizCompletionRepository;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        this.quizService = (QuizService) getServletContext().getAttribute("quizService");
-        this.sessionService = (QuizSessionService) getServletContext().getAttribute("sessionService");
-        this.sessionManager = new SessionManager();
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.quizService = new QuizService(dataSource);
+        this.sessionService = new QuizSessionService(dataSource);
+        this.quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
     }
 
     @Override
@@ -65,15 +70,23 @@ public class QuizViewServlet extends HttpServlet {
             
             int totalQuestions = quizService.getQuizQuestionCount(quizId);
             
-            User currentUser = sessionManager.getCurrentUser(request);
-            boolean hasAttempted = false;
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
+            boolean hasCompleted = false;
+            QuizCompletion bestCompletion = null;
+            
             if (currentUser != null) {
-                hasAttempted = sessionService.hasActiveSession((long) currentUser.getId());
+                Optional<QuizCompletion> fastestTime = quizCompletionRepository.findFastestTime((long) currentUser.getId(), quizId);
+                if (fastestTime.isPresent()) {
+                    hasCompleted = true;
+                    bestCompletion = fastestTime.get();
+                }
             }
             
             request.setAttribute("quiz", quiz);
             request.setAttribute("totalQuestions", totalQuestions);
-            request.setAttribute("hasAttempted", hasAttempted);
+            request.setAttribute("hasCompleted", hasCompleted);
+            request.setAttribute("bestCompletion", bestCompletion);
             
             request.getRequestDispatcher("/WEB-INF/quiz-view.jsp").forward(request, response);
             
@@ -86,7 +99,8 @@ public class QuizViewServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;

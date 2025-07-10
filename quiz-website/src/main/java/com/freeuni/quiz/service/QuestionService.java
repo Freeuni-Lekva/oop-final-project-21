@@ -3,7 +3,9 @@ package com.freeuni.quiz.service;
 import com.freeuni.quiz.bean.Question;
 import com.freeuni.quiz.bean.QuestionType;
 import com.freeuni.quiz.repository.QuestionRepository;
+import com.freeuni.quiz.repository.impl.QuestionRepositoryImpl;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -11,8 +13,8 @@ import java.util.Optional;
 public class QuestionService {
     private final QuestionRepository questionRepository;
 
-    public QuestionService(QuestionRepository questionRepository) {
-        this.questionRepository = questionRepository;
+    public QuestionService(DataSource dataSource) {
+        this.questionRepository = new QuestionRepositoryImpl(dataSource);
     }
 
     public Long createQuestion(Question question) {

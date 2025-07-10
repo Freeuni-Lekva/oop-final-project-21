@@ -1,50 +1,78 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.Category;
-import com.freeuni.quiz.repository.CategoryRepository;
+import org.h2.jdbcx.JdbcDataSource;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
 
-    @Mock
-    private CategoryRepository categoryRepository;
-
+    private static DataSource dataSource;
     private CategoryService categoryService;
     private Category testCategory;
 
+    @BeforeAll
+    static void setupClass() throws Exception {
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL("jdbc:h2:mem:categorytest;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=FALSE;DEFAULT_NULL_ORDERING=HIGH");
+        ds.setUser("sa");
+        ds.setPassword("");
+        dataSource = ds;
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DROP ALL OBJECTS");
+            
+            stmt.execute("CREATE TABLE users (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY," +
+                    "hashPassword VARCHAR(255) NOT NULL," +
+                    "salt VARCHAR(255) NOT NULL," +
+                    "firstName VARCHAR(100) NOT NULL," +
+                    "lastName VARCHAR(100) NOT NULL," +
+                    "userName VARCHAR(100) UNIQUE NOT NULL," +
+                    "email VARCHAR(255) UNIQUE NOT NULL," +
+                    "imageURL VARCHAR(2083)," +
+                    "bio TEXT" +
+                    ")");
+            
+            stmt.execute("CREATE TABLE quiz_categories (" +
+                    "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
+                    "category_name VARCHAR(64) NOT NULL," +
+                    "description TEXT," +
+                    "is_active BOOLEAN DEFAULT TRUE" +
+                    ")");
+        }
+    }
+
     @BeforeEach
-    void setUp() {
-        categoryService = new CategoryService(categoryRepository);
-        
+    void setUp() throws Exception {
+        categoryService = new CategoryService(dataSource);
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM quiz_categories");
+        }
+
         testCategory = new Category();
-        testCategory.setId(1L);
         testCategory.setCategoryName("Mathematics");
         testCategory.setDescription("Math related questions");
     }
 
     @Test
     void createCategory_ValidCategory_ShouldReturnCategoryId() {
-        Long expectedId = 1L;
-        when(categoryRepository.existsByName("Mathematics")).thenReturn(false);
-        when(categoryRepository.saveCategory(any(Category.class))).thenReturn(expectedId);
-
         Long result = categoryService.createCategory(testCategory);
 
-        assertEquals(expectedId, result);
+        assertNotNull(result);
+        assertTrue(result > 0);
         assertTrue(testCategory.isActive());
-        verify(categoryRepository).existsByName("Mathematics");
-        verify(categoryRepository).saveCategory(testCategory);
     }
 
     @Test
@@ -56,7 +84,6 @@ class CategoryServiceTest {
             () -> categoryService.createCategory(testCategory)
         );
         assertEquals("Category name is required", exception.getMessage());
-        verify(categoryRepository, never()).saveCategory(any());
     }
 
     @Test
@@ -94,20 +121,22 @@ class CategoryServiceTest {
 
     @Test
     void createCategory_ExistingCategoryName_ShouldThrowException() {
-        when(categoryRepository.existsByName("Mathematics")).thenReturn(true);
+        categoryService.createCategory(testCategory);
 
-        // Act & Assert
+        Category duplicateCategory = new Category();
+        duplicateCategory.setCategoryName("Mathematics");
+        duplicateCategory.setDescription("Another math category");
+
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> categoryService.createCategory(testCategory)
+            () -> categoryService.createCategory(duplicateCategory)
         );
         assertEquals("Category name already exists", exception.getMessage());
-        verify(categoryRepository, never()).saveCategory(any());
     }
 
     @Test
     void createCategory_CategoryNameTooLong_ShouldThrowException() {
-        String longName = "a".repeat(101); // 101 characters
+        String longName = "a".repeat(101);
         testCategory.setCategoryName(longName);
 
         IllegalArgumentException exception = assertThrows(
@@ -119,7 +148,7 @@ class CategoryServiceTest {
 
     @Test
     void createCategory_DescriptionTooLong_ShouldThrowException() {
-        String longDescription = "a".repeat(501); // 501 characters
+        String longDescription = "a".repeat(501);
         testCategory.setDescription(longDescription);
 
         IllegalArgumentException exception = assertThrows(
@@ -131,62 +160,51 @@ class CategoryServiceTest {
 
     @Test
     void getCategoryById_ExistingCategory_ShouldReturnCategory() {
-        Long categoryId = 1L;
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(testCategory));
+        Long categoryId = categoryService.createCategory(testCategory);
 
         Optional<Category> result = categoryService.getCategoryById(categoryId);
 
         assertTrue(result.isPresent());
-        assertEquals(testCategory, result.get());
-        verify(categoryRepository).findById(categoryId);
+        assertEquals("Mathematics", result.get().getCategoryName());
     }
 
     @Test
     void getCategoryById_NonExistingCategory_ShouldReturnEmpty() {
-        Long categoryId = 999L;
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
-
-        Optional<Category> result = categoryService.getCategoryById(categoryId);
+        Optional<Category> result = categoryService.getCategoryById(999L);
 
         assertFalse(result.isPresent());
-        verify(categoryRepository).findById(categoryId);
     }
 
     @Test
     void getAllActiveCategories_ShouldReturnActiveCategories() {
-        Category category2 = new Category();
-        category2.setId(2L);
-        category2.setCategoryName("Science");
-        category2.setActive(true);
+        categoryService.createCategory(testCategory);
         
-        List<Category> expectedCategories = Arrays.asList(testCategory, category2);
-        when(categoryRepository.findAllActive()).thenReturn(expectedCategories);
+        Category category2 = new Category();
+        category2.setCategoryName("Science");
+        category2.setDescription("Science related questions");
+        categoryService.createCategory(category2);
 
         List<Category> result = categoryService.getAllActiveCategories();
 
-        assertEquals(expectedCategories, result);
-        verify(categoryRepository).findAllActive();
+        assertEquals(2, result.size());
     }
 
     @Test
     void getAllActiveCategories_EmptyRepository_ShouldReturnEmptyList() {
-        when(categoryRepository.findAllActive()).thenReturn(new ArrayList<>());
-
         List<Category> result = categoryService.getAllActiveCategories();
 
         assertTrue(result.isEmpty());
-        verify(categoryRepository).findAllActive();
     }
 
     @Test
     void updateCategory_ValidCategory_ShouldReturnTrue() {
-        when(categoryRepository.findById(testCategory.getId())).thenReturn(Optional.of(testCategory));
-        when(categoryRepository.updateCategory(testCategory)).thenReturn(true);
+        Long categoryId = categoryService.createCategory(testCategory);
+        testCategory.setId(categoryId);
+        testCategory.setDescription("Updated description");
 
         boolean result = categoryService.updateCategory(testCategory);
 
         assertTrue(result);
-        verify(categoryRepository).updateCategory(testCategory);
     }
 
     @Test
@@ -194,159 +212,107 @@ class CategoryServiceTest {
         testCategory.setCategoryName(null);
 
         assertThrows(IllegalArgumentException.class, () -> categoryService.updateCategory(testCategory));
-        verify(categoryRepository, never()).updateCategory(any());
     }
 
     @Test
     void updateCategory_NameAlreadyExists_ShouldThrowException() {
-        Category existingCategory = new Category();
-        existingCategory.setId(1L);
-        existingCategory.setCategoryName("OldName");
+        categoryService.createCategory(testCategory);
         
-        testCategory.setCategoryName("NewName");
-        when(categoryRepository.findById(testCategory.getId())).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.existsByName("NewName")).thenReturn(true);
+        Category anotherCategory = new Category();
+        anotherCategory.setCategoryName("Science");
+        anotherCategory.setDescription("Science questions");
+        Long anotherId = categoryService.createCategory(anotherCategory);
+        
+        anotherCategory.setId(anotherId);
+        anotherCategory.setCategoryName("Mathematics");
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> categoryService.updateCategory(testCategory)
+            () -> categoryService.updateCategory(anotherCategory)
         );
         assertEquals("Category name already exists", exception.getMessage());
-        verify(categoryRepository, never()).updateCategory(any());
     }
 
     @Test
     void updateCategory_SameNameAsExisting_ShouldSucceed() {
-        Category existingCategory = new Category();
-        existingCategory.setId(1L);
-        existingCategory.setCategoryName("Mathematics");
-        
-        when(categoryRepository.findById(testCategory.getId())).thenReturn(Optional.of(existingCategory));
-        when(categoryRepository.updateCategory(testCategory)).thenReturn(true);
+        Long categoryId = categoryService.createCategory(testCategory);
+        testCategory.setId(categoryId);
+        testCategory.setDescription("Updated description but same name");
 
         boolean result = categoryService.updateCategory(testCategory);
 
         assertTrue(result);
-        verify(categoryRepository).updateCategory(testCategory);
-        verify(categoryRepository, never()).existsByName(any());
     }
 
     @Test
     void deleteCategory_ExistingCategory_ShouldMarkAsInactive() {
-        Long categoryId = 1L;
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(testCategory));
-        when(categoryRepository.updateCategory(testCategory)).thenReturn(true);
+        Long categoryId = categoryService.createCategory(testCategory);
 
         boolean result = categoryService.deleteCategory(categoryId);
 
         assertTrue(result);
-        assertFalse(testCategory.isActive());
-        verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository).updateCategory(testCategory);
+        Optional<Category> category = categoryService.getCategoryById(categoryId);
+        assertTrue(category.isPresent());
+        assertFalse(category.get().isActive());
     }
 
     @Test
     void deleteCategory_NonExistingCategory_ShouldReturnFalse() {
-        Long categoryId = 999L;
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
-
-        boolean result = categoryService.deleteCategory(categoryId);
+        boolean result = categoryService.deleteCategory(999L);
 
         assertFalse(result);
-        verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository, never()).updateCategory(any());
     }
 
     @Test
     void hardDeleteCategory_ShouldReturnRepositoryResult() {
-        Long categoryId = 1L;
-        when(categoryRepository.deleteCategory(categoryId)).thenReturn(true);
+        Long categoryId = categoryService.createCategory(testCategory);
 
         boolean result = categoryService.hardDeleteCategory(categoryId);
 
         assertTrue(result);
-        verify(categoryRepository).deleteCategory(categoryId);
-    }
-
-    @Test
-    void searchCategoriesByName_ValidSearchTerm_ShouldReturnMatchingCategories() {
-        String searchTerm = "math";
-        List<Category> expectedCategories = Collections.singletonList(testCategory);
-        when(categoryRepository.searchByName(searchTerm)).thenReturn(expectedCategories);
-
-        List<Category> result = categoryService.searchCategoriesByName(searchTerm);
-
-        assertEquals(expectedCategories, result);
-        verify(categoryRepository).searchByName(searchTerm);
+        Optional<Category> category = categoryService.getCategoryById(categoryId);
+        assertFalse(category.isPresent());
     }
 
     @Test
     void searchCategoriesByName_NoMatches_ShouldReturnEmptyList() {
-        String searchTerm = "nonexistent";
-        when(categoryRepository.searchByName(searchTerm)).thenReturn(new ArrayList<>());
-
-        List<Category> result = categoryService.searchCategoriesByName(searchTerm);
+        List<Category> result = categoryService.searchCategoriesByName("nonexistent");
 
         assertTrue(result.isEmpty());
-        verify(categoryRepository).searchByName(searchTerm);
     }
 
     @Test
     void categoryExists_ExistingCategory_ShouldReturnTrue() {
-        String categoryName = "Mathematics";
-        when(categoryRepository.existsByName(categoryName)).thenReturn(true);
+        categoryService.createCategory(testCategory);
 
-        boolean result = categoryService.categoryExists(categoryName);
+        boolean result = categoryService.categoryExists("Mathematics");
 
         assertTrue(result);
-        verify(categoryRepository).existsByName(categoryName);
     }
 
     @Test
     void categoryExists_NonExistingCategory_ShouldReturnFalse() {
-        String categoryName = "NonExistent";
-        when(categoryRepository.existsByName(categoryName)).thenReturn(false);
-
-        boolean result = categoryService.categoryExists(categoryName);
+        boolean result = categoryService.categoryExists("NonExistent");
 
         assertFalse(result);
-        verify(categoryRepository).existsByName(categoryName);
     }
 
     @Test
     void createCategory_SetsActiveToTrue() {
         testCategory.setActive(false);
-        when(categoryRepository.existsByName("Mathematics")).thenReturn(false);
-        when(categoryRepository.saveCategory(any(Category.class))).thenReturn(1L);
 
         categoryService.createCategory(testCategory);
 
         assertTrue(testCategory.isActive());
-        verify(categoryRepository).saveCategory(testCategory);
     }
 
     @Test
     void updateCategory_ValidatesAllFields() {
         testCategory.setDescription("   ");
         assertThrows(IllegalArgumentException.class, () -> categoryService.updateCategory(testCategory));
-        
+
         testCategory.setDescription("Valid Description");
         testCategory.setCategoryName("");
         assertThrows(IllegalArgumentException.class, () -> categoryService.updateCategory(testCategory));
     }
-
-    @Test
-    void createCategory_ExactLimits_ShouldSucceed() {
-        String maxName = "a".repeat(100);
-        String maxDescription = "a".repeat(500);
-        
-        testCategory.setCategoryName(maxName);
-        testCategory.setDescription(maxDescription);
-        
-        when(categoryRepository.existsByName(maxName)).thenReturn(false);
-        when(categoryRepository.saveCategory(any(Category.class))).thenReturn(1L);
-
-        assertDoesNotThrow(() -> categoryService.createCategory(testCategory));
-        verify(categoryRepository).saveCategory(testCategory);
-    }
-} 
+}

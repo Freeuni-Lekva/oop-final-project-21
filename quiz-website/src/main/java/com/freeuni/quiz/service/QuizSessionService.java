@@ -3,10 +3,14 @@ package com.freeuni.quiz.service;
 import com.freeuni.quiz.bean.QuizSession;
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.ParticipantAnswer;
-import com.freeuni.quiz.repository.QuizSessionRepository;
-import com.freeuni.quiz.repository.QuizRepository;
 import com.freeuni.quiz.repository.ParticipantAnswerRepository;
+import com.freeuni.quiz.repository.QuizRepository;
+import com.freeuni.quiz.repository.QuizSessionRepository;
+import com.freeuni.quiz.repository.impl.QuizSessionRepositoryImpl;
+import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
+import com.freeuni.quiz.repository.impl.ParticipantAnswerRepositoryImpl;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +20,10 @@ public class QuizSessionService {
     private final QuizRepository quizRepository;
     private final ParticipantAnswerRepository participantAnswerRepository;
 
-    public QuizSessionService(QuizSessionRepository quizSessionRepository, 
-                             QuizRepository quizRepository,
-                             ParticipantAnswerRepository participantAnswerRepository) {
-        this.quizSessionRepository = quizSessionRepository;
-        this.quizRepository = quizRepository;
-        this.participantAnswerRepository = participantAnswerRepository;
+    public QuizSessionService(DataSource dataSource) {
+        this.quizSessionRepository = new QuizSessionRepositoryImpl(dataSource);
+        this.quizRepository = new QuizRepositoryImpl(dataSource);
+        this.participantAnswerRepository = new ParticipantAnswerRepositoryImpl(dataSource);
     }
 
     public boolean startQuizSession(Long participantId, Long quizId) {

@@ -2,24 +2,34 @@ package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.Question;
-import com.freeuni.quiz.repository.QuizRepository;
-import com.freeuni.quiz.repository.QuizQuestionMappingRepository;
 import com.freeuni.quiz.repository.QuestionRepository;
+import com.freeuni.quiz.repository.QuizCompletionRepository;
+import com.freeuni.quiz.repository.QuizQuestionMappingRepository;
+import com.freeuni.quiz.repository.QuizRepository;
+import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
+import com.freeuni.quiz.repository.impl.QuestionRepositoryImpl;
+import com.freeuni.quiz.repository.impl.QuizQuestionMappingRepositoryImpl;
+import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class QuizService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final QuizQuestionMappingRepository quizQuestionMappingRepository;
+    private final QuizCompletionRepository quizCompletionRepository;
 
-    public QuizService(QuizRepository quizRepository, QuestionRepository questionRepository, 
-                      QuizQuestionMappingRepository quizQuestionMappingRepository) {
-        this.quizRepository = quizRepository;
-        this.questionRepository = questionRepository;
-        this.quizQuestionMappingRepository = quizQuestionMappingRepository;
+    public QuizService(DataSource dataSource) {
+        this.quizRepository = new QuizRepositoryImpl(dataSource);
+        this.questionRepository = new QuestionRepositoryImpl(dataSource);
+        this.quizQuestionMappingRepository = new QuizQuestionMappingRepositoryImpl(dataSource);
+        this.quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
     }
 
     public Long createQuiz(Quiz quiz) {
@@ -71,7 +81,7 @@ public class QuizService {
             return false;
         }
         
-        boolean success = quizQuestionMappingRepository.addQuestionToQuiz(quizId, questionId, questionNumber);
+        boolean success = quizQuestionMappingRepository.addQuestionToQuiz(questionId, quizId, questionNumber);
         
         if (success) {
             Quiz quiz = quizOpt.get();
@@ -84,7 +94,7 @@ public class QuizService {
     }
 
     public boolean removeQuestionFromQuiz(Long quizId, Long questionId) {
-        return quizQuestionMappingRepository.removeQuestionFromQuiz(quizId, questionId);
+        return quizQuestionMappingRepository.removeQuestionFromQuiz(questionId, quizId);
     }
 
     public List<Question> getQuizQuestions(Long quizId) {
@@ -93,15 +103,7 @@ public class QuizService {
             .map(questionRepository::findById)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .collect(java.util.stream.Collectors.toList());
-    }
-
-    public Optional<Question> getQuizQuestion(Long quizId, Long questionNumber) {
-        Optional<Long> questionIdOpt = quizQuestionMappingRepository.getQuestionIdBySequence(quizId, questionNumber);
-        if (questionIdOpt.isPresent()) {
-            return questionRepository.findById(questionIdOpt.get());
-        }
-        return Optional.empty();
+            .collect(Collectors.toList());
     }
 
     public int getQuizQuestionCount(Long quizId) {
@@ -111,6 +113,52 @@ public class QuizService {
     public boolean isQuizOwner(Long quizId, Long userId) {
         Optional<Quiz> quizOpt = quizRepository.findById(quizId);
         return quizOpt.isPresent() && quizOpt.get().getCreatorUserId() == userId;
+    }
+
+    public Map<Integer, Integer> getCompletionCountsForQuizzes(List<Quiz> quizzes) {
+        if (quizzes == null || quizzes.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        List<Long> quizIds = quizzes.stream()
+            .map(Quiz::getId)
+            .collect(Collectors.toList());
+        
+        Map<Long, Integer> longResults = quizCompletionRepository.getCompletionCountsByQuizzes(quizIds);
+        
+        Map<Integer, Integer> results = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : longResults.entrySet()) {
+            results.put(entry.getKey().intValue(), entry.getValue());
+        }
+        
+        return results;
+    }
+
+    public Map<Integer, Double> getAverageScoresForQuizzes(List<Quiz> quizzes) {
+        if (quizzes == null || quizzes.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        List<Long> quizIds = quizzes.stream()
+            .map(Quiz::getId)
+            .collect(Collectors.toList());
+        
+        Map<Long, Double> longResults = quizCompletionRepository.getAverageScoresByQuizzes(quizIds);
+        
+        Map<Integer, Double> results = new HashMap<>();
+        for (Map.Entry<Long, Double> entry : longResults.entrySet()) {
+            results.put(entry.getKey().intValue(), entry.getValue());
+        }
+        
+        return results;
+    }
+
+    public int getCompletionCountForQuiz(Long quizId) {
+        return quizCompletionRepository.getCompletionCountByQuiz(quizId);
+    }
+
+    public Double getAverageScoreForQuiz(Long quizId) {
+        return quizCompletionRepository.getAverageScoreByQuiz(quizId);
     }
 
     private void validateQuizData(Quiz quiz) {

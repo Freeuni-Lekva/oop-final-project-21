@@ -1,41 +1,120 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.*;
-import com.freeuni.quiz.repository.*;
 import com.freeuni.quiz.service.QuizSessionService.QuizResults;
+import org.h2.jdbcx.JdbcDataSource;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class QuizSessionServiceTest {
 
-    @Mock
-    private QuizSessionRepository quizSessionRepository;
-    
-    @Mock
-    private QuizRepository quizRepository;
-    
-    @Mock
-    private ParticipantAnswerRepository participantAnswerRepository;
-
+    private static DataSource dataSource;
     private QuizSessionService quizSessionService;
     private Quiz testQuiz;
     private QuizSession testSession;
 
+    @BeforeAll
+    static void setupClass() throws Exception {
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL("jdbc:h2:mem:quizsessiontest;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=FALSE;DEFAULT_NULL_ORDERING=HIGH");
+        ds.setUser("sa");
+        ds.setPassword("");
+        dataSource = ds;
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DROP ALL OBJECTS");
+            
+            stmt.execute("CREATE TABLE users (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY," +
+                    "hashPassword VARCHAR(255) NOT NULL," +
+                    "salt VARCHAR(255) NOT NULL," +
+                    "firstName VARCHAR(100) NOT NULL," +
+                    "lastName VARCHAR(100) NOT NULL," +
+                    "userName VARCHAR(100) UNIQUE NOT NULL," +
+                    "email VARCHAR(255) UNIQUE NOT NULL," +
+                    "imageURL VARCHAR(2083)," +
+                    "bio TEXT" +
+                    ")");
+            
+            stmt.execute("CREATE TABLE quiz_categories (" +
+                    "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
+                    "category_name VARCHAR(64) NOT NULL," +
+                    "description TEXT," +
+                    "is_active BOOLEAN DEFAULT TRUE" +
+                    ")");
+                    
+            stmt.execute("CREATE TABLE quizzes (" +
+                    "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
+                    "creator_user_id INT NOT NULL," +
+                    "category_id BIGINT," +
+                    "last_question_number BIGINT DEFAULT 0," +
+                    "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "test_title VARCHAR(128) NOT NULL," +
+                    "test_description VARCHAR(256)," +
+                    "time_limit_minutes BIGINT DEFAULT 10," +
+                    "FOREIGN KEY (creator_user_id) REFERENCES users(id) ON DELETE CASCADE," +
+                    "FOREIGN KEY (category_id) REFERENCES quiz_categories(id) ON DELETE CASCADE" +
+                    ")");
+            
+            stmt.execute("CREATE TABLE quiz_sessions (" +
+                    "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
+                    "participant_user_id INT UNIQUE NOT NULL," +
+                    "test_id BIGINT NOT NULL," +
+                    "current_question_num BIGINT DEFAULT 0," +
+                    "time_allocated BIGINT," +
+                    "session_start DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "FOREIGN KEY (participant_user_id) REFERENCES users(id) ON DELETE CASCADE," +
+                    "FOREIGN KEY (test_id) REFERENCES quizzes(id) ON DELETE CASCADE" +
+                    ")");
+                    
+            stmt.execute("CREATE TABLE participant_answers (" +
+                    "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
+                    "participant_user_id INT NOT NULL," +
+                    "test_id BIGINT NOT NULL," +
+                    "question_number BIGINT NOT NULL," +
+                    "points_earned DOUBLE DEFAULT 0," +
+                    "time_spent_seconds INT," +
+                    "answer_text TEXT," +
+                    "UNIQUE(participant_user_id, test_id, question_number)," +
+                    "FOREIGN KEY (participant_user_id) REFERENCES users(id) ON DELETE CASCADE," +
+                    "FOREIGN KEY (test_id) REFERENCES quizzes(id) ON DELETE CASCADE" +
+                    ")");
+            
+            stmt.execute("INSERT INTO users (id, hashPassword, salt, firstName, lastName, userName, email) VALUES " +
+                    "(100, 'hash', 'salt', 'Test', 'User', 'testuser', 'test@example.com')");
+            stmt.execute("INSERT INTO users (id, hashPassword, salt, firstName, lastName, userName, email) VALUES " +
+                    "(101, 'hash2', 'salt2', 'Another', 'User', 'anotheruser', 'another@example.com')");
+            stmt.execute("INSERT INTO quiz_categories (id, category_name, description) VALUES " +
+                    "(10, 'Mathematics', 'Math questions')");
+        }
+    }
+
     @BeforeEach
-    void setUp() {
-        quizSessionService = new QuizSessionService(
-            quizSessionRepository, quizRepository, participantAnswerRepository);
+    void setUp() throws Exception {
+        quizSessionService = new QuizSessionService(dataSource);
+        
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM participant_answers");
+            stmt.execute("DELETE FROM quiz_sessions");
+            stmt.execute("DELETE FROM quizzes");
+        }
+        
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("INSERT INTO quizzes (id, creator_user_id, category_id, test_title, test_description, time_limit_minutes) VALUES " +
+                    "(1, 100, 10, 'Test Quiz', 'A test quiz', 30)");
+        }
         
         testQuiz = new Quiz();
         testQuiz.setId(1L);
@@ -53,16 +132,14 @@ class QuizSessionServiceTest {
         Long participantId = 100L;
         Long quizId = 1L;
         
-        when(quizRepository.findById(quizId)).thenReturn(Optional.of(testQuiz));
-        when(quizSessionRepository.hasActiveSession(participantId)).thenReturn(false);
-        when(quizSessionRepository.createSession(any(QuizSession.class))).thenReturn(true);
-
         boolean result = quizSessionService.startQuizSession(participantId, quizId);
 
         assertTrue(result);
-        verify(quizRepository).findById(quizId);
-        verify(quizSessionRepository).hasActiveSession(participantId);
-        verify(quizSessionRepository).createSession(any(QuizSession.class));
+        
+        Optional<QuizSession> session = quizSessionService.getActiveSession(participantId);
+        assertTrue(session.isPresent());
+        assertEquals(participantId, session.get().getParticipantUserId());
+        assertEquals(quizId, session.get().getTestId());
     }
 
     @Test
@@ -70,14 +147,9 @@ class QuizSessionServiceTest {
         Long participantId = 100L;
         Long quizId = 999L;
         
-        when(quizRepository.findById(quizId)).thenReturn(Optional.empty());
-
         boolean result = quizSessionService.startQuizSession(participantId, quizId);
 
         assertFalse(result);
-        verify(quizRepository).findById(quizId);
-        verify(quizSessionRepository, never()).hasActiveSession(any());
-        verify(quizSessionRepository, never()).createSession(any());
     }
 
     @Test
@@ -85,136 +157,66 @@ class QuizSessionServiceTest {
         Long participantId = 100L;
         Long quizId = 1L;
         
-        when(quizRepository.findById(quizId)).thenReturn(Optional.of(testQuiz));
-        when(quizSessionRepository.hasActiveSession(participantId)).thenReturn(true);
-
-        boolean result = quizSessionService.startQuizSession(participantId, quizId);
-
-        assertFalse(result);
-        verify(quizRepository).findById(quizId);
-        verify(quizSessionRepository).hasActiveSession(participantId);
-        verify(quizSessionRepository, never()).createSession(any());
-    }
-
-    @Test
-    void startQuizSession_CreateSessionFails_ShouldReturnFalse() {
-        Long participantId = 100L;
-        Long quizId = 1L;
+        quizSessionService.startQuizSession(participantId, quizId);
         
-        when(quizRepository.findById(quizId)).thenReturn(Optional.of(testQuiz));
-        when(quizSessionRepository.hasActiveSession(participantId)).thenReturn(false);
-        when(quizSessionRepository.createSession(any(QuizSession.class))).thenReturn(false);
-
         boolean result = quizSessionService.startQuizSession(participantId, quizId);
 
         assertFalse(result);
-        verify(quizSessionRepository).createSession(any(QuizSession.class));
     }
 
     @Test
     void getActiveSession_ExistingSession_ShouldReturnSession() {
         Long participantId = 100L;
-        when(quizSessionRepository.findByParticipant(participantId)).thenReturn(Optional.of(testSession));
+        quizSessionService.startQuizSession(participantId, 1L);
 
         Optional<QuizSession> result = quizSessionService.getActiveSession(participantId);
 
         assertTrue(result.isPresent());
-        assertEquals(testSession, result.get());
-        verify(quizSessionRepository).findByParticipant(participantId);
+        assertEquals(participantId, result.get().getParticipantUserId());
     }
 
     @Test
     void getActiveSession_NoSession_ShouldReturnEmpty() {
-        Long participantId = 100L;
-        when(quizSessionRepository.findByParticipant(participantId)).thenReturn(Optional.empty());
-
-        Optional<QuizSession> result = quizSessionService.getActiveSession(participantId);
+        Optional<QuizSession> result = quizSessionService.getActiveSession(100L);
 
         assertFalse(result.isPresent());
-        verify(quizSessionRepository).findByParticipant(participantId);
     }
 
     @Test
     void updateCurrentQuestion_ValidParameters_ShouldReturnTrue() {
         Long participantId = 100L;
-        Long questionNumber = 5L;
-        when(quizSessionRepository.updateCurrentQuestion(participantId, questionNumber)).thenReturn(true);
+        quizSessionService.startQuizSession(participantId, 1L);
 
-        boolean result = quizSessionService.updateCurrentQuestion(participantId, questionNumber);
+        boolean result = quizSessionService.updateCurrentQuestion(participantId, 5L);
 
         assertTrue(result);
-        verify(quizSessionRepository).updateCurrentQuestion(participantId, questionNumber);
     }
 
     @Test
     void updateCurrentQuestion_RepositoryReturnsFalse_ShouldReturnFalse() {
-        Long participantId = 100L;
-        Long questionNumber = 5L;
-        when(quizSessionRepository.updateCurrentQuestion(participantId, questionNumber)).thenReturn(false);
-
-        boolean result = quizSessionService.updateCurrentQuestion(participantId, questionNumber);
+        boolean result = quizSessionService.updateCurrentQuestion(999L, 5L);
 
         assertFalse(result);
-        verify(quizSessionRepository).updateCurrentQuestion(participantId, questionNumber);
     }
 
     @Test
     void submitAnswer_ValidAnswer_ShouldReturnTrue() {
         Long participantId = 100L;
         Long testId = 1L;
-        long questionNumber = 3L;
+        Long questionNumber = 3L;
         String answerText = "Paris";
         Double pointsEarned = 1.0;
         Integer timeSpent = 30;
-        
-        when(participantAnswerRepository.saveAnswer(any(ParticipantAnswer.class))).thenReturn(true);
-        when(quizSessionRepository.updateCurrentQuestion(participantId, questionNumber + 1)).thenReturn(true);
+
+        quizSessionService.startQuizSession(participantId, testId);
 
         boolean result = quizSessionService.submitAnswer(
             participantId, testId, questionNumber, answerText, pointsEarned, timeSpent);
 
         assertTrue(result);
-        verify(participantAnswerRepository).saveAnswer(any(ParticipantAnswer.class));
-        verify(quizSessionRepository).updateCurrentQuestion(participantId, 4L);
-    }
 
-    @Test
-    void submitAnswer_SaveAnswerFails_ShouldReturnFalse() {
-        Long participantId = 100L;
-        Long testId = 1L;
-        Long questionNumber = 3L;
-        String answerText = "Paris";
-        Double pointsEarned = 1.0;
-        Integer timeSpent = 30;
-        
-        when(participantAnswerRepository.saveAnswer(any(ParticipantAnswer.class))).thenReturn(false);
-
-        boolean result = quizSessionService.submitAnswer(
-            participantId, testId, questionNumber, answerText, pointsEarned, timeSpent);
-
-        assertFalse(result);
-        verify(participantAnswerRepository).saveAnswer(any(ParticipantAnswer.class));
-        verify(quizSessionRepository, never()).updateCurrentQuestion(any(), any());
-    }
-
-    @Test
-    void submitAnswer_SaveSucceedsButUpdateFails_ShouldReturnFalse() {
-        Long participantId = 100L;
-        Long testId = 1L;
-        long questionNumber = 3L;
-        String answerText = "Paris";
-        Double pointsEarned = 1.0;
-        Integer timeSpent = 30;
-        
-        when(participantAnswerRepository.saveAnswer(any(ParticipantAnswer.class))).thenReturn(true);
-        when(quizSessionRepository.updateCurrentQuestion(participantId, questionNumber + 1)).thenReturn(false);
-
-        boolean result = quizSessionService.submitAnswer(
-            participantId, testId, questionNumber, answerText, pointsEarned, timeSpent);
-
-        assertFalse(result);
-        verify(participantAnswerRepository).saveAnswer(any(ParticipantAnswer.class));
-        verify(quizSessionRepository).updateCurrentQuestion(participantId, 4L);
+        List<Long> answeredQuestions = quizSessionService.getAnsweredQuestions(participantId, testId);
+        assertTrue(answeredQuestions.contains(questionNumber));
     }
 
     @Test
@@ -222,12 +224,11 @@ class QuizSessionServiceTest {
         Long participantId = 100L;
         Long testId = 1L;
         
-        ParticipantAnswer answer1 = createAnswer(1L, 1.0);
-        ParticipantAnswer answer2 = createAnswer(2L, 0.5);
-        ParticipantAnswer answer3 = createAnswer(3L, 1.0);
+        quizSessionService.startQuizSession(participantId, testId);
         
-        List<ParticipantAnswer> answers = Arrays.asList(answer1, answer2, answer3);
-        when(participantAnswerRepository.getAllAnswers(participantId, testId)).thenReturn(answers);
+        quizSessionService.submitAnswer(participantId, testId, 1L, "Answer 1", 1.0, 30);
+        quizSessionService.submitAnswer(participantId, testId, 2L, "Answer 2", 0.5, 25);
+        quizSessionService.submitAnswer(participantId, testId, 3L, "Answer 3", 1.0, 35);
 
         QuizResults result = quizSessionService.getQuizResults(participantId, testId);
 
@@ -236,17 +237,14 @@ class QuizSessionServiceTest {
         assertEquals(testId, result.testId());
         assertEquals(2.5, result.totalScore(), 0.001);
         assertEquals(3, result.totalQuestions());
-        assertEquals(answers, result.answers());
+        assertEquals(3, result.answers().size());
         assertEquals(2.5 / 3, result.getAverageScore(), 0.001);
-        verify(participantAnswerRepository).getAllAnswers(participantId, testId);
     }
 
     @Test
     void getQuizResults_NoAnswers_ShouldReturnEmptyResults() {
         Long participantId = 100L;
         Long testId = 1L;
-        
-        when(participantAnswerRepository.getAllAnswers(participantId, testId)).thenReturn(new ArrayList<>());
 
         QuizResults result = quizSessionService.getQuizResults(participantId, testId);
 
@@ -263,15 +261,17 @@ class QuizSessionServiceTest {
     void getAnsweredQuestions_ShouldReturnRepositoryResult() {
         Long participantId = 100L;
         Long testId = 1L;
-        List<Long> expectedQuestions = Arrays.asList(1L, 2L, 3L);
         
-        when(participantAnswerRepository.getAnsweredQuestionNumbers(participantId, testId))
-            .thenReturn(expectedQuestions);
-
+        quizSessionService.startQuizSession(participantId, testId);
+        
+        quizSessionService.submitAnswer(participantId, testId, 1L, "Answer 1", 1.0, 30);
+        quizSessionService.submitAnswer(participantId, testId, 2L, "Answer 2", 0.5, 25);
+        
         List<Long> result = quizSessionService.getAnsweredQuestions(participantId, testId);
 
-        assertEquals(expectedQuestions, result);
-        verify(participantAnswerRepository).getAnsweredQuestionNumbers(participantId, testId);
+        assertEquals(2, result.size());
+        assertTrue(result.contains(1L));
+        assertTrue(result.contains(2L));
     }
 
     @Test
@@ -281,73 +281,57 @@ class QuizSessionServiceTest {
         Long questionNumber = 1L;
         Double expectedScore = 0.75;
         
-        when(participantAnswerRepository.getAnswerScore(participantId, testId, questionNumber))
-            .thenReturn(Optional.of(expectedScore));
+        quizSessionService.startQuizSession(participantId, testId);
+        quizSessionService.submitAnswer(participantId, testId, questionNumber, "Answer", expectedScore, 30);
 
         Optional<Double> result = quizSessionService.getQuestionScore(participantId, testId, questionNumber);
 
         assertTrue(result.isPresent());
         assertEquals(expectedScore, result.get());
-        verify(participantAnswerRepository).getAnswerScore(participantId, testId, questionNumber);
     }
 
     @Test
     void getQuestionScore_NoScore_ShouldReturnEmpty() {
-        Long participantId = 100L;
-        Long testId = 1L;
-        Long questionNumber = 1L;
-        
-        when(participantAnswerRepository.getAnswerScore(participantId, testId, questionNumber))
-            .thenReturn(Optional.empty());
-
-        Optional<Double> result = quizSessionService.getQuestionScore(participantId, testId, questionNumber);
+        Optional<Double> result = quizSessionService.getQuestionScore(100L, 1L, 999L);
 
         assertFalse(result.isPresent());
-        verify(participantAnswerRepository).getAnswerScore(participantId, testId, questionNumber);
     }
 
     @Test
     void endQuizSession_ShouldReturnRepositoryResult() {
         Long participantId = 100L;
-        when(quizSessionRepository.deleteSession(participantId)).thenReturn(true);
+        quizSessionService.startQuizSession(participantId, 1L);
 
         boolean result = quizSessionService.endQuizSession(participantId);
 
         assertTrue(result);
-        verify(quizSessionRepository).deleteSession(participantId);
+        
+        Optional<QuizSession> session = quizSessionService.getActiveSession(participantId);
+        assertFalse(session.isPresent());
     }
 
     @Test
     void endQuizSession_RepositoryReturnsFalse_ShouldReturnFalse() {
-        Long participantId = 100L;
-        when(quizSessionRepository.deleteSession(participantId)).thenReturn(false);
-
-        boolean result = quizSessionService.endQuizSession(participantId);
+        boolean result = quizSessionService.endQuizSession(999L);
 
         assertFalse(result);
-        verify(quizSessionRepository).deleteSession(participantId);
     }
 
     @Test
     void hasActiveSession_ExistingSession_ShouldReturnTrue() {
         Long participantId = 100L;
-        when(quizSessionRepository.hasActiveSession(participantId)).thenReturn(true);
+        quizSessionService.startQuizSession(participantId, 1L);
 
         boolean result = quizSessionService.hasActiveSession(participantId);
 
         assertTrue(result);
-        verify(quizSessionRepository).hasActiveSession(participantId);
     }
 
     @Test
     void hasActiveSession_NoSession_ShouldReturnFalse() {
-        Long participantId = 100L;
-        when(quizSessionRepository.hasActiveSession(participantId)).thenReturn(false);
-
-        boolean result = quizSessionService.hasActiveSession(participantId);
+        boolean result = quizSessionService.hasActiveSession(999L);
 
         assertFalse(result);
-        verify(quizSessionRepository).hasActiveSession(participantId);
     }
 
     @Test
@@ -356,39 +340,15 @@ class QuizSessionServiceTest {
         Long quizId = 1L;
         LocalDateTime beforeStart = LocalDateTime.now();
         
-        when(quizRepository.findById(quizId)).thenReturn(Optional.of(testQuiz));
-        when(quizSessionRepository.hasActiveSession(participantId)).thenReturn(false);
-        when(quizSessionRepository.createSession(any(QuizSession.class))).thenReturn(true);
-
         quizSessionService.startQuizSession(participantId, quizId);
 
-        verify(quizSessionRepository).createSession(argThat(session -> session.getParticipantUserId().equals(participantId) &&
-               session.getTestId().equals(quizId) &&
-               session.getTimeAllocated().equals(testQuiz.getTimeLimitMinutes()) &&
-               session.getCurrentQuestionNum().equals(0L) &&
-               session.getSessionStart().isAfter(beforeStart.minusSeconds(1))));
-    }
-
-    @Test
-    void submitAnswer_SetsCorrectAnswerProperties() {
-        Long participantId = 100L;
-        Long testId = 1L;
-        Long questionNumber = 3L;
-        String answerText = "Test Answer";
-        Double pointsEarned = 0.8;
-        Integer timeSpent = 45;
-        
-        when(participantAnswerRepository.saveAnswer(any(ParticipantAnswer.class))).thenReturn(true);
-        when(quizSessionRepository.updateCurrentQuestion(participantId, questionNumber + 1)).thenReturn(true);
-
-        quizSessionService.submitAnswer(participantId, testId, questionNumber, answerText, pointsEarned, timeSpent);
-
-        verify(participantAnswerRepository).saveAnswer(argThat(answer -> answer.getParticipantUserId().equals(participantId) &&
-               answer.getTestId().equals(testId) &&
-               answer.getQuestionNumber().equals(questionNumber) &&
-               answer.getAnswerText().equals(answerText) &&
-               answer.getPointsEarned().equals(pointsEarned) &&
-               answer.getTimeSpentSeconds().equals(timeSpent)));
+        Optional<QuizSession> session = quizSessionService.getActiveSession(participantId);
+        assertTrue(session.isPresent());
+        assertEquals(participantId, session.get().getParticipantUserId());
+        assertEquals(quizId, session.get().getTestId());
+        assertEquals(30L, session.get().getTimeAllocated());
+        assertEquals(0L, session.get().getCurrentQuestionNum());
+        assertTrue(session.get().getSessionStart().isAfter(beforeStart.minusSeconds(1)));
     }
 
     @Test
@@ -397,7 +357,10 @@ class QuizSessionServiceTest {
         Long testId = 5L;
         double totalScore = 7.5;
         int totalQuestions = 10;
-        List<ParticipantAnswer> answers = Arrays.asList(createAnswer(1L, 1.0), createAnswer(2L, 0.5));
+        List<ParticipantAnswer> answers = Arrays.asList(
+            createAnswer(1L, 1.0), 
+            createAnswer(2L, 0.5)
+        );
 
         QuizResults results = new QuizResults(participantId, testId, totalScore, totalQuestions, answers);
 

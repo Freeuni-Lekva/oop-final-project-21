@@ -21,8 +21,8 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public Long saveQuestion(Question question) {
-        String sql = "INSERT INTO questions (author_id, category_id, question_title, question_type, " +
-                    "question_handler, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO test_questions (author_user_id, category_id, question_title, question_type, " +
+                    "question_data, created_at) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -55,7 +55,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public Optional<Question> findById(Long questionId) {
-        String sql = "SELECT * FROM questions WHERE id = ?";
+        String sql = "SELECT * FROM test_questions WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -75,7 +75,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public List<Question> findByAuthor(Long authorId, int offset, int limit) {
-        String sql = "SELECT * FROM questions WHERE author_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM test_questions WHERE author_user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -92,7 +92,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public List<Question> findByCategory(Long categoryId, int offset, int limit) {
-        String sql = "SELECT * FROM questions WHERE category_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM test_questions WHERE category_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -109,7 +109,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public List<Question> findByType(QuestionType type, int offset, int limit) {
-        String sql = "SELECT * FROM questions WHERE question_type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM test_questions WHERE question_type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -126,7 +126,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public List<Question> searchByTitle(String searchTerm, int offset, int limit) {
-        String sql = "SELECT * FROM questions WHERE question_title LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM test_questions WHERE question_title LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -143,7 +143,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public boolean updateQuestion(Question question) {
-        String sql = "UPDATE questions SET question_title = ?, question_type = ?, question_handler = ? WHERE id = ?";
+        String sql = "UPDATE test_questions SET question_title = ?, question_type = ?, question_data = ? WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -167,7 +167,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public boolean deleteQuestion(Long questionId) {
-        String sql = "DELETE FROM questions WHERE id = ?";
+        String sql = "DELETE FROM test_questions WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -195,14 +195,14 @@ public class QuestionRepositoryImpl implements QuestionRepository {
     private Question mapResultSetToQuestion(ResultSet resultSet) throws SQLException {
         Question question = new Question();
         question.setId(resultSet.getLong("id"));
-        question.setAuthorUserId(resultSet.getInt("author_id"));
+        question.setAuthorUserId(resultSet.getInt("author_user_id"));
         question.setCategoryId(resultSet.getLong("category_id"));
         question.setQuestionTitle(resultSet.getString("question_title"));
         question.setQuestionType(QuestionType.valueOf(resultSet.getString("question_type")));
         question.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
         
         try {
-            Blob blob = resultSet.getBlob("question_handler");
+            Blob blob = resultSet.getBlob("question_data");
             if (blob != null) {
                 ObjectInputStream in = new ObjectInputStream(blob.getBinaryStream());
                 question.setQuestionHandler((AbstractQuestionHandler) in.readObject());

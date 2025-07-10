@@ -12,6 +12,7 @@ public class Question {
     private AbstractQuestionHandler questionHandler;
     private String questionTitle;
     private QuestionType questionType;
+    private Double points;
 
     public Question() {}
 
@@ -89,5 +90,13 @@ public class Question {
 
     public void setQuestionType(QuestionType questionType) {
         this.questionType = questionType;
+    }
+
+    public Double getPoints() {
+        return points != null ? points : 10.0;
+    }
+
+    public void setPoints(Double points) {
+        this.points = points;
     }
 }
