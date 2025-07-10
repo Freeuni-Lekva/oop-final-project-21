@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
 
@@ -20,8 +21,9 @@ public class QuizBrowserServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        this.quizService = (QuizService) getServletContext().getAttribute("quizService");
-        this.categoryService = (CategoryService) getServletContext().getAttribute("categoryService");
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.quizService = new QuizService(dataSource);
+        this.categoryService = new CategoryService(dataSource);
     }
 
     @Override

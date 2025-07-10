@@ -2,16 +2,17 @@ package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
 import com.freeuni.quiz.DTO.UserDTO;
-import com.freeuni.quiz.DTO.QuizFormDto;
 import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.util.ServletUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/quiz-creator")
 public class QuizCreatorServlet extends HttpServlet {
@@ -22,8 +23,9 @@ public class QuizCreatorServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        this.quizService = (QuizService) getServletContext().getAttribute("quizService");
-        this.categoryService = (CategoryService) getServletContext().getAttribute("categoryService");
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.quizService = new QuizService(dataSource);
+        this.categoryService = new CategoryService(dataSource);
     }
 
     @Override
@@ -44,13 +46,16 @@ public class QuizCreatorServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            UserDTO currentUser = ServletUtils.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
+            
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;
             }
             
-            ServletUtils.setupCategoriesAttribute(request, categoryService);
+            List<Category> categories = categoryService.getAllActiveCategories();
+            request.setAttribute("categories", categories);
             request.setAttribute("mode", "create");
             
             request.getRequestDispatcher("/WEB-INF/quiz-creator.jsp").forward(request, response);
@@ -64,22 +69,32 @@ public class QuizCreatorServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            UserDTO currentUser = ServletUtils.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
+            
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;
             }
             
-            QuizFormDto formData = ServletUtils.extractQuizFormData(request);
+            String title = request.getParameter("title");
+            String description = request.getParameter("description");
+            String categoryIdStr = request.getParameter("categoryId");
+            String timeLimitStr = request.getParameter("timeLimit");
             
-            String validationError = ServletUtils.validateQuizForm(formData);
-            if (validationError != null) {
-                request.setAttribute("errorMessage", validationError);
+            if (title == null || title.trim().isEmpty()) {
+                request.setAttribute("errorMessage", "Quiz title is required");
                 handleCreateForm(request, response);
                 return;
             }
             
-            Quiz quiz = createQuizFromFormData(formData, currentUser);
+            if (description == null || description.trim().isEmpty()) {
+                request.setAttribute("errorMessage", "Quiz description is required");
+                handleCreateForm(request, response);
+                return;
+            }
+            
+            Quiz quiz = createQuizFromFormData(title, description, categoryIdStr, timeLimitStr, currentUser);
             
             Long quizId = quizService.createQuiz(quiz);
             
@@ -96,20 +111,20 @@ public class QuizCreatorServlet extends HttpServlet {
         }
     }
 
-    private Quiz createQuizFromFormData(QuizFormDto formData, UserDTO currentUser) {
+    private Quiz createQuizFromFormData(String title, String description, String categoryIdStr, String timeLimitStr, UserDTO currentUser) {
         Quiz quiz = new Quiz();
         quiz.setCreatorUserId(currentUser.getId());
-        quiz.setTestTitle(formData.getTitle());
-        quiz.setTestDescription(formData.getDescription());
+        quiz.setTestTitle(title);
+        quiz.setTestDescription(description);
         
-        if (formData.getCategoryIdStr() != null && !formData.getCategoryIdStr().isEmpty()) {
-            quiz.setCategoryId(Long.parseLong(formData.getCategoryIdStr()));
+        if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+            quiz.setCategoryId(Long.parseLong(categoryIdStr));
         }
         
         long timeLimit = 10L;
-        if (formData.getTimeLimitStr() != null && !formData.getTimeLimitStr().isEmpty()) {
+        if (timeLimitStr != null && !timeLimitStr.isEmpty()) {
             try {
-                timeLimit = Long.parseLong(formData.getTimeLimitStr());
+                timeLimit = Long.parseLong(timeLimitStr);
             } catch (NumberFormatException ignored) {
             }
         }

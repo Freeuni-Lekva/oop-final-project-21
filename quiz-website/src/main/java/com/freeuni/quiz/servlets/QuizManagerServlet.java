@@ -1,30 +1,32 @@
 package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
+import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.util.SessionManager;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/quiz-manager")
 public class QuizManagerServlet extends HttpServlet {
 
     private QuizService quizService;
     private QuizSessionService sessionService;
-    private SessionManager sessionManager;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        this.quizService = (QuizService) getServletContext().getAttribute("quizService");
-        this.sessionService = (QuizSessionService) getServletContext().getAttribute("sessionService");
-        this.sessionManager = new SessionManager();
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.quizService = new QuizService(dataSource);
+        this.sessionService = new QuizSessionService(dataSource);
     }
 
     @Override
@@ -50,14 +52,11 @@ public class QuizManagerServlet extends HttpServlet {
             response.sendRedirect("quiz-manager");
             return;
         }
-        
-        switch (action) {
-            case "delete":
-                handleDeleteQuiz(request, response);
-                break;
-            default:
-                response.sendRedirect("quiz-manager");
-                break;
+
+        if (action.equals("delete")) {
+            handleDeleteQuiz(request, response);
+        } else {
+            response.sendRedirect("quiz-manager");
         }
     }
 
@@ -65,7 +64,8 @@ public class QuizManagerServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;
@@ -73,10 +73,15 @@ public class QuizManagerServlet extends HttpServlet {
             
             List<Quiz> createdQuizzes = quizService.getQuizzesByCreator((long) currentUser.getId(), 0, 20);
             
+            Map<Integer, Integer> completionCounts = quizService.getCompletionCountsForQuizzes(createdQuizzes);
+            Map<Integer, Double> averageScores = quizService.getAverageScoresForQuizzes(createdQuizzes);
+            
             Long participantId = (long) currentUser.getId();
             boolean hasActiveSession = sessionService.hasActiveSession(participantId);
             
             request.setAttribute("createdQuizzes", createdQuizzes);
+            request.setAttribute("completionCounts", completionCounts);
+            request.setAttribute("averageScores", averageScores);
             request.setAttribute("hasActiveSession", hasActiveSession);
             
             request.getRequestDispatcher("/WEB-INF/quiz-dashboard.jsp").forward(request, response);
@@ -90,7 +95,8 @@ public class QuizManagerServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;

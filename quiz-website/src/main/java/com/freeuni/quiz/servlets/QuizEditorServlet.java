@@ -1,15 +1,22 @@
 package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.bean.*;
+import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.util.SessionManager;
+import com.freeuni.quiz.quiz_util.*;
+
+import java.util.Arrays;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 @WebServlet("/quiz-editor")
@@ -17,14 +24,15 @@ public class QuizEditorServlet extends HttpServlet {
 
     private QuizService quizService;
     private CategoryService categoryService;
-    private SessionManager sessionManager;
+    private QuestionService questionService;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        this.quizService = (QuizService) getServletContext().getAttribute("quizService");
-        this.categoryService = (CategoryService) getServletContext().getAttribute("categoryService");
-        this.sessionManager = new SessionManager();
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.quizService = new QuizService(dataSource);
+        this.categoryService = new CategoryService(dataSource);
+        this.questionService = new QuestionService(dataSource);
     }
 
     @Override
@@ -43,14 +51,21 @@ public class QuizEditorServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        handleUpdateQuiz(request, response);
+        String action = request.getParameter("action");
+
+        switch (action) {
+            case "addQuestion" -> handleAddQuestion(request, response);
+            case "deleteQuestion" -> handleDeleteQuestion(request, response);
+            case null, default -> handleUpdateQuiz(request, response);
+        }
     }
 
     private void handleEditForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;
@@ -95,7 +110,8 @@ public class QuizEditorServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            User currentUser = sessionManager.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;
@@ -155,7 +171,8 @@ public class QuizEditorServlet extends HttpServlet {
                 return;
             }
 
-            User currentUser = sessionManager.getCurrentUser(request);
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
             if (currentUser == null) {
                 response.sendRedirect("login.jsp");
                 return;
@@ -227,9 +244,194 @@ public class QuizEditorServlet extends HttpServlet {
         if (updateData.getTimeLimitStr() != null && !updateData.getTimeLimitStr().isEmpty()) {
             try {
                 quiz.setTimeLimitMinutes(Long.parseLong(updateData.getTimeLimitStr()));
-            } catch (NumberFormatException e) {
-                // Keep existing value
+            } catch (NumberFormatException ignored) {
             }
+        }
+    }
+
+    private void handleAddQuestion(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        try {
+            HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
+            if (currentUser == null) {
+                response.sendRedirect("login.jsp");
+                return;
+            }
+            
+            String quizIdStr = request.getParameter("quizId");
+            if (quizIdStr == null || quizIdStr.isEmpty()) {
+                response.sendRedirect("quiz-manager?action=dashboard");
+                return;
+            }
+            
+            Long quizId = Long.parseLong(quizIdStr);
+            
+            if (!quizService.isQuizOwner(quizId, (long) currentUser.getId())) {
+                handleError(request, response, "You don't have permission to add questions to this quiz");
+                return;
+            }
+            
+            String questionText = request.getParameter("questionText");
+            String pointsStr = request.getParameter("points");
+            String questionTypeStr = request.getParameter("questionType");
+            
+            if (questionText == null || questionText.trim().isEmpty()) {
+                request.setAttribute("errorMessage", "Question text is required");
+                handleEditForm(request, response);
+                return;
+            }
+            
+            if (questionTypeStr == null || questionTypeStr.trim().isEmpty()) {
+                request.setAttribute("errorMessage", "Question type is required");
+                handleEditForm(request, response);
+                return;
+            }
+            
+            double points;
+            try {
+                points = pointsStr != null ? Double.parseDouble(pointsStr) : 10.0;
+            } catch (NumberFormatException e) {
+                points = 10.0;
+            }
+            
+            QuestionType questionType = QuestionType.valueOf(questionTypeStr);
+            
+            AbstractQuestionHandler questionHandler;
+            switch (questionType) {
+                case TEXT:
+                    String expectedAnswer = request.getParameter("expectedAnswer");
+                    List<String> correctAnswers = new ArrayList<>();
+                    if (expectedAnswer != null && !expectedAnswer.trim().isEmpty()) {
+                        correctAnswers.add(expectedAnswer.trim());
+                    }
+                    questionHandler = new TextQuestionHandler(questionText, correctAnswers);
+                    break;
+                    
+                case MULTIPLE_CHOICE:
+                    String[] options = request.getParameterValues("options[]");
+                    String correctAnswerStr = request.getParameter("correctAnswer");
+                    
+                    if (options == null || options.length < 2) {
+                        request.setAttribute("errorMessage", "At least 2 options are required for multiple choice questions");
+                        handleEditForm(request, response);
+                        return;
+                    }
+                    
+                    if (correctAnswerStr == null || correctAnswerStr.trim().isEmpty()) {
+                        request.setAttribute("errorMessage", "Correct answer index is required for multiple choice questions");
+                        handleEditForm(request, response);
+                        return;
+                    }
+                    
+                    int correctIndex;
+                    try {
+                        correctIndex = Integer.parseInt(correctAnswerStr);
+                        if (correctIndex < 0 || correctIndex >= options.length) {
+                            throw new NumberFormatException("Index out of range");
+                        }
+                    } catch (NumberFormatException e) {
+                        request.setAttribute("errorMessage", "Invalid correct answer index");
+                        handleEditForm(request, response);
+                        return;
+                    }
+                    
+                    List<String> choiceOptions = Arrays.asList(options);
+                    List<String> correctChoices = Collections.singletonList(options[correctIndex]);
+                    questionHandler = new MultipleChoiceQuestionHandler(questionText, choiceOptions, correctChoices);
+                    break;
+                    
+                case IMAGE:
+                    String imageUrl = request.getParameter("imageUrl");
+                    String imageExpectedAnswer = request.getParameter("expectedAnswer");
+                    
+                    if (imageUrl == null || imageUrl.trim().isEmpty()) {
+                        request.setAttribute("errorMessage", "Image URL is required for image questions");
+                        handleEditForm(request, response);
+                        return;
+                    }
+                    
+                    List<String> imageCorrectAnswers = new ArrayList<>();
+                    if (imageExpectedAnswer != null && !imageExpectedAnswer.trim().isEmpty()) {
+                        imageCorrectAnswers.add(imageExpectedAnswer.trim());
+                    }
+                    questionHandler = new ImageQuestionHandler(questionText, imageUrl, imageCorrectAnswers);
+                    break;
+                    
+                default:
+                    request.setAttribute("errorMessage", "Unsupported question type");
+                    handleEditForm(request, response);
+                    return;
+            }
+            
+            Question question = new Question();
+            question.setAuthorUserId(currentUser.getId());
+            question.setCategoryId(1L);
+            question.setQuestionTitle(questionText);
+            question.setQuestionType(questionType);
+            question.setQuestionHandler(questionHandler);
+            question.setPoints(points);
+            
+            Long questionId = questionService.createQuestion(question);
+            
+            if (questionId != null) {
+                int questionCount = quizService.getQuizQuestionCount(quizId);
+                Long nextQuestionNumber = (long) (questionCount + 1);
+                
+                boolean linked = quizService.addQuestionToQuiz(quizId, questionId, nextQuestionNumber);
+                
+                if (linked) {
+                    response.sendRedirect("quiz-editor?quizId=" + quizId + "&message=Question added successfully");
+                } else {
+                    questionService.deleteQuestion(questionId);
+                    request.setAttribute("errorMessage", "Failed to link question to quiz");
+                    handleEditForm(request, response);
+                }
+            } else {
+                request.setAttribute("errorMessage", "Failed to create question");
+                handleEditForm(request, response);
+            }
+            
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("errorMessage", "Invalid question type: " + e.getMessage());
+            handleEditForm(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error adding question: " + e.getMessage());
+            handleEditForm(request, response);
+        }
+    }
+
+    private void handleDeleteQuestion(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        try {
+            javax.servlet.http.HttpSession session = request.getSession(false);
+            UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
+            if (currentUser == null) {
+                response.sendRedirect("login.jsp");
+                return;
+            }
+            
+            String quizIdStr = request.getParameter("quizId");
+            String questionIdStr = request.getParameter("questionId");
+            
+            if (quizIdStr == null || quizIdStr.isEmpty() || questionIdStr == null || questionIdStr.isEmpty()) {
+                response.sendRedirect("quiz-manager?action=dashboard");
+                return;
+            }
+            
+            Long quizId = Long.parseLong(quizIdStr);
+
+            if (!quizService.isQuizOwner(quizId, (long) currentUser.getId())) {
+                handleError(request, response, "You don't have permission to delete questions from this quiz");
+                return;
+            }
+            
+            response.sendRedirect("quiz-editor?quizId=" + quizId + "&message=Question deletion feature coming soon");
+            
+        } catch (Exception e) {
+            handleError(request, response, "Error deleting question: " + e.getMessage());
         }
     }
 
@@ -239,7 +441,6 @@ public class QuizEditorServlet extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/error.jsp").forward(request, response);
     }
 
-    // Inner class for update data
     private static class QuizUpdateData {
         private String title;
         private String description;
@@ -247,7 +448,6 @@ public class QuizEditorServlet extends HttpServlet {
         private String timeLimitStr;
         private String validationError;
 
-        // Getters and setters
         public String getTitle() { return title; }
         public void setTitle(String title) { this.title = title; }
         
