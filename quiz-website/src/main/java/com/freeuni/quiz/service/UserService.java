@@ -10,8 +10,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static com.freeuni.quiz.converter.UserConverter.convertToDTO;
 
@@ -99,5 +98,12 @@ public class UserService {
         User user = userDAO.findById(id);
         if (user == null) return null;
         return UserConverter.toDTO(user);
+    }
+
+    public Map<Integer, UserDTO> findUsersByIds(Set<Integer> userIds) throws SQLException {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return userDAO.findUsersByIds(userIds);
     }
 }

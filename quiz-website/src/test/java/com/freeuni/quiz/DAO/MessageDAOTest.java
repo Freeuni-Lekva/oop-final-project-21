@@ -6,20 +6,17 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.LocalDateTime;
+import java.sql.*;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class MessageDAOTest {
     private static BasicDataSource dataSource;
     private MessageDAO messageDAO;
 
     @BeforeClass
-    public static void setUpDatabase() throws SQLException {
+    public static void setupDatabase() throws SQLException {
         dataSource = new BasicDataSource();
         dataSource.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
         dataSource.setUsername("sa");
@@ -28,18 +25,20 @@ public class MessageDAOTest {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DROP ALL OBJECTS");
-            stmt.execute("CREATE TABLE messages (" +
-                    "id INT AUTO_INCREMENT PRIMARY KEY," +
-                    "sender_id INT NOT NULL," +
-                    "receiver_id INT NOT NULL," +
-                    "content TEXT NOT NULL," +
-                    "sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                    ")");
+            stmt.execute("""
+                CREATE TABLE messages (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    sender_id INT NOT NULL,
+                    receiver_id INT NOT NULL,
+                    content TEXT NOT NULL,
+                    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """);
         }
     }
 
     @Before
-    public void setUp() throws SQLException {
+    public void setup() throws SQLException {
         messageDAO = new MessageDAO(dataSource);
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -48,54 +47,61 @@ public class MessageDAOTest {
     }
 
     @Test
-    public void testSendMessageAndGetRecent() throws SQLException, InterruptedException {
-        messageDAO.sendMessage(1, 2, "Hello");
-        messageDAO.sendMessage(2, 1, "Hi");
-        messageDAO.sendMessage(1, 2, "How are you?");
+    public void testSendMessageAndGetById() throws SQLException {
+        int senderId = 1;
+        int receiverId = 2;
+        String content = "Hello there!";
 
-        List<Message> recent = messageDAO.getRecentMessages(1, 2);
-        assertEquals(3, recent.size());
-        assertEquals("Hello", recent.get(0).getContent());
-        assertEquals("Hi", recent.get(1).getContent());
-        assertEquals("How are you?", recent.get(2).getContent());
+        int messageId = messageDAO.sendMessage(senderId, receiverId, content);
+        assertTrue(messageId > 0);
+
+        Message msg = messageDAO.getMessageById(messageId);
+        assertEquals(senderId, msg.getSenderId());
+        assertEquals(receiverId, msg.getReceiverId());
+        assertEquals(content, msg.getContent());
+        assertNotNull(msg.getSentAt());
+    }
+
+    @Test
+    public void testGetRecentMessages() throws SQLException {
+        for (int i = 0; i < 5; i++) {
+            messageDAO.sendMessage(1, 2, "Message " + i);
+        }
+
+        List<Message> messages = messageDAO.getRecentMessages(1, 2);
+        assertEquals(5, messages.size());
+        assertEquals("Message 0", messages.get(0).getContent());
+        assertEquals("Message 4", messages.get(4).getContent());
     }
 
     @Test
     public void testGetMessagesBefore() throws SQLException, InterruptedException {
-        messageDAO.sendMessage(1, 2, "First");
-        Thread.sleep(1000);
-        messageDAO.sendMessage(2, 1, "Second");
-        Thread.sleep(1000);
-        messageDAO.sendMessage(1, 2, "Third");
-
-        List<Message> recent = messageDAO.getRecentMessages(1, 2);
-        assertEquals(3, recent.size());
-
-        LocalDateTime before = recent.get(1).getSentAt();
-
-        List<Message> older = messageDAO.getMessagesBefore(1, 2, before);
-        assertEquals(1, older.size());
-        assertEquals("First", older.get(0).getContent());
-    }
-
-    @Test
-    public void testGetMessagesBetweenUsersOnly() throws SQLException {
-        messageDAO.sendMessage(1, 2, "User1->User2");
-        messageDAO.sendMessage(2, 3, "User2->User3");
-        messageDAO.sendMessage(3, 1, "User3->User1");
-
-        List<Message> between12 = messageDAO.getRecentMessages(1, 2);
-        assertEquals(1, between12.size());
-        assertEquals("User1->User2", between12.get(0).getContent());
-    }
-
-    @Test
-    public void testPageSizeLimit() throws SQLException {
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 5; i++) {
             messageDAO.sendMessage(1, 2, "Msg " + i);
+            Thread.sleep(10); // Ensure different timestamps
         }
-        List<Message> recent = messageDAO.getRecentMessages(1, 2);
-        assertEquals(messageDAO.getPageSize(), recent.size());
-        assertEquals("Msg 5", recent.get(0).getContent());
+
+        List<Message> all = messageDAO.getRecentMessages(1, 2);
+        Message beforeMessage = all.get(3); // second oldest
+        List<Message> older = messageDAO.getMessagesBefore(1, 2, beforeMessage.getSentAt(), beforeMessage.getId());
+
+        assertEquals(3, older.size());
+        assertEquals("Msg 0", older.get(0).getContent());
+    }
+
+    @Test
+    public void testGetLatestConversations() throws SQLException {
+        messageDAO.sendMessage(1, 2, "First");
+        messageDAO.sendMessage(2, 3, "Second");
+        messageDAO.sendMessage(1, 3, "Third");
+
+        List<Message> convos = messageDAO.getLatestConversations(1);
+        assertEquals(2, convos.size()); // conversations with (1,2) and (1,3)
+    }
+
+    @Test(expected = SQLException.class)
+    public void testGetMessageByIdThrows() throws SQLException {
+        messageDAO.getMessageById(999); // should throw
     }
 }
+

@@ -40,7 +40,6 @@ CREATE TABLE messages (
                           FOREIGN KEY (receiver_id) REFERENCES users(id)
 );
 
-
 CREATE TABLE IF NOT EXISTS quiz_categories (
                                                id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                                category_name VARCHAR(64) NOT NULL,
