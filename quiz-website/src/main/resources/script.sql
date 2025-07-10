@@ -142,3 +142,16 @@ CREATE TABLE quiz_reviews (
                               FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
                               UNIQUE (user_id, quiz_id)
 );
+CREATE TABLE quiz_challenges (
+                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                 challenger_user_id INT NOT NULL,
+                                 challenged_user_id INT NOT NULL,
+                                 quiz_id BIGINT NOT NULL,
+                                 message TEXT,
+                                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                 status ENUM('PENDING', 'ACCEPTED', 'COMPLETED', 'DECLINED') DEFAULT 'PENDING',
+                                 FOREIGN KEY (challenger_user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                 FOREIGN KEY (challenged_user_id) REFERENCES users(id) ON DELETE CASCADE,
+                                 FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+                                 UNIQUE (challenger_user_id, challenged_user_id, quiz_id)
+);
