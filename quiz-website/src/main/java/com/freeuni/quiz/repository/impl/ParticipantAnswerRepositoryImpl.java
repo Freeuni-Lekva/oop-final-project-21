@@ -18,8 +18,12 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
 
     @Override
     public boolean saveAnswer(ParticipantAnswer answer) {
-        String sql = "INSERT INTO participant_answers (participant_id, test_id, question_number, " +
-                    "points_earned, time_spent_seconds, answer_text) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO participant_answers (participant_user_id, test_id, question_number, " +
+                    "points_earned, time_spent_seconds, answer_text) VALUES (?, ?, ?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "points_earned = VALUES(points_earned), " +
+                    "time_spent_seconds = VALUES(time_spent_seconds), " +
+                    "answer_text = VALUES(answer_text)";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -49,7 +53,7 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
 
     @Override
     public Optional<Double> getAnswerScore(Long participantUserId, Long testId, Long questionNumber) {
-        String sql = "SELECT points_earned FROM participant_answers WHERE participant_id = ? AND test_id = ? AND question_number = ?";
+        String sql = "SELECT points_earned FROM participant_answers WHERE participant_user_id = ? AND test_id = ? AND question_number = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -71,7 +75,7 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
 
     @Override
     public List<Long> getAnsweredQuestionNumbers(Long participantUserId, Long testId) {
-        String sql = "SELECT question_number FROM participant_answers WHERE participant_id = ? AND test_id = ? ORDER BY question_number";
+        String sql = "SELECT question_number FROM participant_answers WHERE participant_user_id = ? AND test_id = ? ORDER BY question_number";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -93,7 +97,7 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
 
     @Override
     public List<ParticipantAnswer> getAllAnswers(Long participantUserId, Long testId) {
-        String sql = "SELECT * FROM participant_answers WHERE participant_id = ? AND test_id = ? ORDER BY question_number";
+        String sql = "SELECT * FROM participant_answers WHERE participant_user_id = ? AND test_id = ? ORDER BY question_number";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -109,7 +113,7 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
 
     @Override
     public boolean deleteAnswer(Long participantUserId, Long testId, Long questionNumber) {
-        String sql = "DELETE FROM participant_answers WHERE participant_id = ? AND test_id = ? AND question_number = ?";
+        String sql = "DELETE FROM participant_answers WHERE participant_user_id = ? AND test_id = ? AND question_number = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -126,7 +130,7 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
 
     @Override
     public int deleteAllAnswers(Long participantUserId, Long testId) {
-        String sql = "DELETE FROM participant_answers WHERE participant_id = ? AND test_id = ?";
+        String sql = "DELETE FROM participant_answers WHERE participant_user_id = ? AND test_id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -155,7 +159,7 @@ public class ParticipantAnswerRepositoryImpl implements ParticipantAnswerReposit
     private ParticipantAnswer mapResultSetToParticipantAnswer(ResultSet resultSet) throws SQLException {
         ParticipantAnswer answer = new ParticipantAnswer();
         answer.setId(resultSet.getLong("id"));
-        answer.setParticipantUserId(resultSet.getLong("participant_id"));
+        answer.setParticipantUserId(resultSet.getLong("participant_user_id"));
         answer.setTestId(resultSet.getLong("test_id"));
         answer.setQuestionNumber(resultSet.getLong("question_number"));
         answer.setPointsEarned(resultSet.getDouble("points_earned"));

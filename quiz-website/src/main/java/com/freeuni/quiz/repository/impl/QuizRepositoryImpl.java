@@ -18,7 +18,7 @@ public class QuizRepositoryImpl implements QuizRepository {
 
     @Override
     public Long saveQuiz(Quiz quiz) {
-        String sql = "INSERT INTO quizzes (creator_id, category_id, title, description, timer_duration, " +
+        String sql = "INSERT INTO quizzes (creator_user_id, category_id, test_title, test_description, time_limit_minutes, " +
                     "created_at, last_question_number) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection connection = dataSource.getConnection();
@@ -67,7 +67,7 @@ public class QuizRepositoryImpl implements QuizRepository {
 
     @Override
     public List<Quiz> findByCreator(Long creatorUserId, int offset, int limit) {
-        String sql = "SELECT * FROM quizzes WHERE creator_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        String sql = "SELECT * FROM quizzes WHERE creator_user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -117,7 +117,7 @@ public class QuizRepositoryImpl implements QuizRepository {
 
     @Override
     public boolean updateQuiz(Quiz quiz) {
-        String sql = "UPDATE quizzes SET title = ?, description = ?, timer_duration = ?, " +
+        String sql = "UPDATE quizzes SET test_title = ?, test_description = ?, time_limit_minutes = ?, " +
                     "last_question_number = ? WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
@@ -181,11 +181,11 @@ public class QuizRepositoryImpl implements QuizRepository {
     private Quiz mapResultSetToQuiz(ResultSet resultSet) throws SQLException {
         Quiz quiz = new Quiz();
         quiz.setId(resultSet.getLong("id"));
-        quiz.setCreatorUserId(resultSet.getInt("creator_id"));
+        quiz.setCreatorUserId(resultSet.getInt("creator_user_id"));
         quiz.setCategoryId(resultSet.getLong("category_id"));
-        quiz.setTestTitle(resultSet.getString("title"));
-        quiz.setTestDescription(resultSet.getString("description"));
-        quiz.setTimeLimitMinutes(resultSet.getLong("timer_duration"));
+        quiz.setTestTitle(resultSet.getString("test_title"));
+        quiz.setTestDescription(resultSet.getString("test_description"));
+        quiz.setTimeLimitMinutes(resultSet.getLong("time_limit_minutes"));
         quiz.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
         quiz.setLastQuestionNumber(resultSet.getLong("last_question_number"));
         

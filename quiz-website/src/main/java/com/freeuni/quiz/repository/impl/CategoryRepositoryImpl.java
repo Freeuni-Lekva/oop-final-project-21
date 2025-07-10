@@ -18,7 +18,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public Long saveCategory(Category category) {
-        String sql = "INSERT INTO categories (category_name, description, is_active) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO quiz_categories (category_name, description, is_active) VALUES (?, ?, ?)";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -42,7 +42,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public Optional<Category> findById(Long categoryId) {
-        String sql = "SELECT * FROM categories WHERE id = ?";
+        String sql = "SELECT * FROM quiz_categories WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -62,7 +62,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public List<Category> findAllActive() {
-        String sql = "SELECT * FROM categories WHERE is_active = true ORDER BY category_name";
+        String sql = "SELECT * FROM quiz_categories WHERE is_active = true ORDER BY category_name";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -75,7 +75,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public List<Category> searchByName(String searchTerm) {
-        String sql = "SELECT * FROM categories WHERE category_name LIKE ? ORDER BY category_name";
+        String sql = "SELECT * FROM quiz_categories WHERE category_name LIKE ? ORDER BY category_name";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -90,7 +90,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public boolean updateCategory(Category category) {
-        String sql = "UPDATE categories SET category_name = ?, description = ?, is_active = ? WHERE id = ?";
+        String sql = "UPDATE quiz_categories SET category_name = ?, description = ?, is_active = ? WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -108,7 +108,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public boolean existsByName(String categoryName) {
-        String sql = "SELECT COUNT(*) FROM categories WHERE category_name = ?";
+        String sql = "SELECT COUNT(*) FROM quiz_categories WHERE category_name = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -128,7 +128,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public boolean deleteCategory(Long categoryId) {
-        String sql = "DELETE FROM categories WHERE id = ?";
+        String sql = "DELETE FROM quiz_categories WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {

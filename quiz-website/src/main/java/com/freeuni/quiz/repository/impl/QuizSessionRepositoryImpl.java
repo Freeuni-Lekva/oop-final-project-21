@@ -16,7 +16,7 @@ public class QuizSessionRepositoryImpl implements QuizSessionRepository {
 
     @Override
     public boolean createSession(QuizSession session) {
-        String sql = "INSERT INTO quiz_sessions (participant_id, test_id, current_question_num, " +
+        String sql = "INSERT INTO quiz_sessions (participant_user_id, test_id, current_question_num, " +
                     "time_allocated, session_start) VALUES (?, ?, ?, ?, ?)";
         
         try (Connection connection = dataSource.getConnection();
@@ -46,7 +46,7 @@ public class QuizSessionRepositoryImpl implements QuizSessionRepository {
 
     @Override
     public Optional<QuizSession> findByParticipant(Long participantId) {
-        String sql = "SELECT * FROM quiz_sessions WHERE participant_id = ? ORDER BY session_start DESC LIMIT 1";
+        String sql = "SELECT * FROM quiz_sessions WHERE participant_user_id = ? ORDER BY session_start DESC LIMIT 1";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -66,7 +66,7 @@ public class QuizSessionRepositoryImpl implements QuizSessionRepository {
 
     @Override
     public boolean updateCurrentQuestion(Long participantId, Long questionNumber) {
-        String sql = "UPDATE quiz_sessions SET current_question_num = ? WHERE participant_id = ?";
+        String sql = "UPDATE quiz_sessions SET current_question_num = ? WHERE participant_user_id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -82,7 +82,7 @@ public class QuizSessionRepositoryImpl implements QuizSessionRepository {
 
     @Override
     public boolean deleteSession(Long participantId) {
-        String sql = "DELETE FROM quiz_sessions WHERE participant_id = ?";
+        String sql = "DELETE FROM quiz_sessions WHERE participant_user_id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -97,7 +97,7 @@ public class QuizSessionRepositoryImpl implements QuizSessionRepository {
 
     @Override
     public boolean hasActiveSession(Long participantId) {
-        String sql = "SELECT COUNT(*) FROM quiz_sessions WHERE participant_id = ?";
+        String sql = "SELECT COUNT(*) FROM quiz_sessions WHERE participant_user_id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -118,7 +118,7 @@ public class QuizSessionRepositoryImpl implements QuizSessionRepository {
     private QuizSession mapResultSetToQuizSession(ResultSet resultSet) throws SQLException {
         QuizSession session = new QuizSession();
         session.setId(resultSet.getLong("id"));
-        session.setParticipantUserId(resultSet.getLong("participant_id"));
+        session.setParticipantUserId(resultSet.getLong("participant_user_id"));
         session.setTestId(resultSet.getLong("test_id"));
         session.setCurrentQuestionNum(resultSet.getLong("current_question_num"));
         session.setTimeAllocated(resultSet.getLong("time_allocated"));

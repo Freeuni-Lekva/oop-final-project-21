@@ -71,21 +71,6 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
     }
 
     @Override
-    public List<QuizCompletion> findByParticipant(Long participantUserId) {
-        String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? ORDER BY started_at DESC";
-        
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            
-            statement.setLong(1, participantUserId);
-            
-            return executeQuizCompletionQuery(statement);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding quiz completions by participant", e);
-        }
-    }
-
-    @Override
     public List<QuizCompletion> findByQuiz(Long testId) {
         String sql = "SELECT * FROM quiz_completions WHERE test_id = ? ORDER BY started_at DESC";
         
@@ -101,8 +86,8 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
     }
 
     @Override
-    public Optional<QuizCompletion> findBestScore(Long participantUserId, Long testId) {
-        String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? AND test_id = ? ORDER BY final_score DESC LIMIT 1";
+    public Optional<QuizCompletion> findFastestTime(Long participantUserId, Long testId) {
+        String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? AND test_id = ? ORDER BY total_time_minutes LIMIT 1";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -117,24 +102,125 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
                 return Optional.empty();
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding best score by participant and quiz", e);
+            throw new RuntimeException("Error finding fastest time by participant and quiz", e);
         }
     }
 
 
-
     @Override
-    public boolean deleteCompletion(Long completionId) {
-        String sql = "DELETE FROM quiz_completions WHERE id = ?";
+    public int getCompletionCountByQuiz(Long testId) {
+        String sql = "SELECT COUNT(*) FROM quiz_completions WHERE test_id = ? AND finished_at IS NOT NULL";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             
-            statement.setLong(1, completionId);
+            statement.setLong(1, testId);
             
-            return statement.executeUpdate() > 0;
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+                return 0;
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Error deleting quiz completion", e);
+            throw new RuntimeException("Error getting completion count for quiz", e);
+        }
+    }
+
+    @Override
+    public Double getAverageScoreByQuiz(Long testId) {
+        String sql = "SELECT AVG(completion_percentage) FROM quiz_completions WHERE test_id = ? AND finished_at IS NOT NULL";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setLong(1, testId);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    double avgScore = resultSet.getDouble(1);
+                    return resultSet.wasNull() ? null : avgScore;
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting average score for quiz", e);
+        }
+    }
+
+    @Override
+    public java.util.Map<Long, Integer> getCompletionCountsByQuizzes(java.util.List<Long> testIds) {
+        java.util.Map<Long, Integer> results = new java.util.HashMap<>();
+        
+        if (testIds == null || testIds.isEmpty()) {
+            return results;
+        }
+        
+        String placeholders = testIds.stream().map(id -> "?").collect(java.util.stream.Collectors.joining(","));
+        String sql = "SELECT test_id, COUNT(*) as completion_count FROM quiz_completions " +
+                    "WHERE test_id IN (" + placeholders + ") AND finished_at IS NOT NULL " +
+                    "GROUP BY test_id";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            for (int i = 0; i < testIds.size(); i++) {
+                statement.setLong(i + 1, testIds.get(i));
+            }
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Long testId = resultSet.getLong("test_id");
+                    Integer count = resultSet.getInt("completion_count");
+                    results.put(testId, count);
+                }
+            }
+            
+            for (Long testId : testIds) {
+                if (!results.containsKey(testId)) {
+                    results.put(testId, 0);
+                }
+            }
+            
+            return results;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting completion counts for quizzes", e);
+        }
+    }
+
+    @Override
+    public java.util.Map<Long, Double> getAverageScoresByQuizzes(java.util.List<Long> testIds) {
+        java.util.Map<Long, Double> results = new java.util.HashMap<>();
+        
+        if (testIds == null || testIds.isEmpty()) {
+            return results;
+        }
+        
+        String placeholders = testIds.stream().map(id -> "?").collect(java.util.stream.Collectors.joining(","));
+        String sql = "SELECT test_id, AVG(completion_percentage) as avg_score FROM quiz_completions " +
+                    "WHERE test_id IN (" + placeholders + ") AND finished_at IS NOT NULL " +
+                    "GROUP BY test_id";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            for (int i = 0; i < testIds.size(); i++) {
+                statement.setLong(i + 1, testIds.get(i));
+            }
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Long testId = resultSet.getLong("test_id");
+                    Double avgScore = resultSet.getDouble("avg_score");
+                    if (!resultSet.wasNull()) {
+                        results.put(testId, avgScore);
+                    }
+                }
+            }
+            
+            return results;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting average scores for quizzes", e);
         }
     }
 
