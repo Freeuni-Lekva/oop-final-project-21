@@ -77,6 +77,10 @@
     <form class="unfriend-form" data-user-id="<%= user.getId() %>">
       <button type="submit" class="btn btn-unfriend">Remove Friend</button>
     </form>
+    <form action="<%= request.getContextPath() %>/chat" method="get" style="margin-top: 1rem;">
+      <input type="hidden" name="with" value="<%= user.getId() %>">
+      <button type="submit" class="btn btn-send">Message</button>
+    </form>
     <% } else if (request.getAttribute("incomingRequest") != null) { %>
     <form class="friend-response-form"
           data-sender-id="<%= user.getId() %>"
