@@ -99,6 +99,17 @@ CREATE TABLE IF NOT EXISTS quiz_completions (
                                                 FOREIGN KEY (participant_user_id) REFERENCES users(id) ON DELETE CASCADE,
                                                 FOREIGN KEY (test_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS quiz_question_mapping (
+                                                     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                                     quiz_id BIGINT NOT NULL,
+                                                     question_id BIGINT NOT NULL,
+                                                     sequence_order BIGINT NOT NULL,
+                                                     FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+                                                     FOREIGN KEY (question_id) REFERENCES test_questions(id) ON DELETE CASCADE,
+                                                     UNIQUE (quiz_id, question_id),
+                                                     UNIQUE (quiz_id, sequence_order)
+);
 CREATE TABLE quiz_ratings (
                               id BIGINT PRIMARY KEY AUTO_INCREMENT,
                               user_id INT NOT NULL,
