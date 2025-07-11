@@ -228,13 +228,13 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
     public List<QuizCompletion> findRecentCompletionsByUser(Long userId, int limit) {
         String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? " +
                     "AND finished_at IS NOT NULL ORDER BY finished_at DESC LIMIT ?";
-        
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            
+
             statement.setLong(1, userId);
             statement.setInt(2, limit);
-            
+
             return executeQuizCompletionQuery(statement);
         } catch (SQLException e) {
             throw new RuntimeException("Error finding recent completions by user", e);
@@ -249,18 +249,38 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
                     "AND qc.participant_user_id != ? " +
                     "AND qc.finished_at IS NOT NULL " +
                     "ORDER BY qc.finished_at DESC LIMIT ?";
-        
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            
+
             statement.setLong(1, userId);
             statement.setLong(2, userId);
             statement.setLong(3, userId);
             statement.setInt(4, limit);
-            
+
             return executeQuizCompletionQuery(statement);
         } catch (SQLException e) {
             throw new RuntimeException("Error finding recent completions by friends", e);
+        }
+    }
+
+    @Override
+    public int getCompletionCountByUser(int userId) {
+        String sql = "SELECT COUNT(*) FROM quiz_completions WHERE participant_user_id = ? AND finished_at IS NOT NULL";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+                return 0;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error getting completion count for user", e);
         }
     }
 
@@ -300,13 +320,13 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
     public Optional<QuizCompletion> findUserCompletionForQuiz(Long userId, Long quizId) {
         String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? AND test_id = ? " +
                     "AND finished_at IS NOT NULL ORDER BY finished_at DESC LIMIT 1";
-        
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            
+
             statement.setLong(1, userId);
             statement.setLong(2, quizId);
-            
+
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return Optional.of(mapResultSetToQuizCompletion(resultSet));
@@ -317,4 +337,4 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
             throw new RuntimeException("Error finding user completion for quiz", e);
         }
     }
-} 
+}
