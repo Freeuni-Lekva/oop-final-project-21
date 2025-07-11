@@ -154,7 +154,7 @@
         <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
         <a href="${pageContext.request.contextPath}/quiz-manager" style="background-color: rgba(255, 255, 255, 0.2);">📊 My Quizzes</a>
         <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
-        <a href="#">🏆 Achievements</a>
+        <a href="${pageContext.request.contextPath}/achievements">🏆 Achievements</a>
         <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
         <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
         <a href="${pageContext.request.contextPath}/history">📊 History</a>
