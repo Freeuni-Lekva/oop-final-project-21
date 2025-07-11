@@ -118,4 +118,19 @@ public class FriendshipRequestDAOTest {
         assertEquals(6, updated.getRequestReceiverId());
         assertEquals(newTime, updated.getTimestamp());
     }
+
+    @Test
+    public void testGetFriendshipRequest() throws SQLException {
+        FriendshipRequest request = new FriendshipRequest(1, 2);
+        dao.addFriendshipRequest(request);
+
+        FriendshipRequest fetched = dao.getFriendshipRequest(1, 2);
+
+        assertNotNull(fetched);
+        assertEquals(1, fetched.getRequestSenderId());
+        assertEquals(2, fetched.getRequestReceiverId());
+
+        FriendshipRequest nonExistent = dao.getFriendshipRequest(2, 1);
+        assertNull(nonExistent);
+    }
 }

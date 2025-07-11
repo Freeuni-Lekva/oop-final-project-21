@@ -1,6 +1,5 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.DAO.FriendshipDAO;
 import com.freeuni.quiz.DAO.UserDAO;
 import com.freeuni.quiz.bean.Friendship;
 import com.freeuni.quiz.bean.User;
@@ -133,5 +132,26 @@ public class FriendshipServiceTest {
         List<Integer> mutual = friendshipService.getMutualFriends(u1.getId(), u2.getId());
         assertEquals(1, mutual.size());
         assertEquals(Integer.valueOf(u3.getId()), mutual.get(0));
+    }
+    @Test
+    public void testGetAllFriendships() throws Exception {
+        User user1 = createAndAddUser("all1", "all1@example.com");
+        User user2 = createAndAddUser("all2", "all2@example.com");
+        User user3 = createAndAddUser("all3", "all3@example.com");
+
+        friendshipService.addFriendship(user1.getId(), user2.getId());
+        friendshipService.addFriendship(user1.getId(), user3.getId());
+
+        List<Friendship> allFriendships = friendshipService.getAllFriendships();
+
+        assertEquals(2, allFriendships.size());
+
+        boolean containsFirst = allFriendships.stream()
+                .anyMatch(f -> f.getFriendSenderId() == user1.getId() && f.getFriendReceiverId() == user2.getId());
+        boolean containsSecond = allFriendships.stream()
+                .anyMatch(f -> f.getFriendSenderId() == user1.getId() && f.getFriendReceiverId() == user3.getId());
+
+        assertTrue(containsFirst);
+        assertTrue(containsSecond);
     }
 }
