@@ -14,6 +14,7 @@ import com.freeuni.quiz.service.FriendshipRequestService;
 import com.freeuni.quiz.service.MessageService;
 import com.freeuni.quiz.service.AnnouncementService;
 import com.freeuni.quiz.DTO.AnnouncementDTO;
+import com.freeuni.quiz.service.HistoryService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -40,6 +41,7 @@ public class HomeServlet extends HttpServlet {
     private FriendshipRequestService friendRequestService;
     private MessageService messageService;
     private AnnouncementService announcementService;
+    private HistoryService historyService;
 
     @Override
     public void init() throws ServletException {
@@ -51,6 +53,7 @@ public class HomeServlet extends HttpServlet {
         this.friendRequestService = new FriendshipRequestService(dataSource);
         this.messageService = new MessageService(dataSource);
         this.announcementService = new AnnouncementService(dataSource);
+        this.historyService = new HistoryService(dataSource);
     }
 
     @Override
@@ -69,19 +72,21 @@ public class HomeServlet extends HttpServlet {
             List<PopularQuizDTO> popularQuizzes = quizService.getPopularQuizzesWithCompletionCount(10);
             List<Quiz> recentlyCreatedQuizzes = quizService.getRecentlyCreatedQuizzes(10);
             List<Quiz> userRecentCreatedQuizzes = quizService.getRecentlyCreatedByUser((long) currentUser.getId(), 10);
-            List<QuizCompletion> userRecentCompletions = quizService.getRecentCompletionsByUser((long) currentUser.getId(), 10);
+
+            // Get user's recent quiz completions (for history display)
+            List<QuizCompletion> userRecentCompletions = historyService.getUserRecentCompletions(currentUser.getId(), 5);
             List<QuizCompletion> friendsRecentCompletions = quizService.getRecentCompletionsByFriends((long) currentUser.getId(), 10);
 
             List<QuizChallengeDTO> recentChallenges = challengeService.getRecentReceivedChallenges(currentUser.getId(), 10, userService, quizService);
             List<FriendshipRequest> recentFriendRequests = friendRequestService.getRecentRequestsReceivedByUser(currentUser.getId(), 10);
             LinkedHashMap<Message, UserDTO> recentConversations = messageService.getRecentConversationsWithProfileDetails(currentUser.getId(), 10);
             List<AnnouncementDTO> recentAnnouncements = announcementService.getRecentAnnouncements(3);
-            
-            Map<Long, Quiz> quizMap = userRecentCompletions.stream()
-                .map(completion -> quizService.getQuizById(completion.getTestId()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toMap(Quiz::getId, quiz -> quiz, (existing, replacement) -> existing));
+
+            Map<Long, Quiz> quizMap = new HashMap<>();
+            for (QuizCompletion completion : userRecentCompletions) {
+                Optional<Quiz> quizOpt = quizService.getQuizById(completion.getTestId());
+                quizOpt.ifPresent(quiz -> quizMap.put(completion.getTestId(), quiz));
+            }
 
             Map<Long, Quiz> friendsQuizMap = friendsRecentCompletions.stream()
                 .map(completion -> quizService.getQuizById(completion.getTestId()))
@@ -111,6 +116,14 @@ public class HomeServlet extends HttpServlet {
                 }
             }
 
+            // Get additional history statistics for the dashboard
+            int totalQuizzesTaken = 0;
+            double averageScore = 0.0;
+            if (!userRecentCompletions.isEmpty()) {
+                totalQuizzesTaken = historyService.getTotalQuizzesTaken(currentUser.getId());
+                averageScore = historyService.getAverageScore(currentUser.getId());
+            }
+
             request.setAttribute("popularQuizzes", popularQuizzes);
             request.setAttribute("recentlyCreatedQuizzes", recentlyCreatedQuizzes);
             request.setAttribute("userRecentCreatedQuizzes", userRecentCreatedQuizzes);
@@ -125,6 +138,9 @@ public class HomeServlet extends HttpServlet {
             request.setAttribute("recentConversations", recentConversations);
             request.setAttribute("friendRequestSenders", friendRequestSenders);
             request.setAttribute("recentAnnouncements", recentAnnouncements);
+
+            request.setAttribute("totalQuizzesTaken", totalQuizzesTaken);
+            request.setAttribute("averageScore", averageScore);
 
             request.getRequestDispatcher("home.jsp").forward(request, response);
             
