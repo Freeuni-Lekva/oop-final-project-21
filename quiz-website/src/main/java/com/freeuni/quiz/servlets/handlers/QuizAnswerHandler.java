@@ -49,21 +49,21 @@ public class QuizAnswerHandler {
         }
     }
 
-    public void handleQuizCompletion(HttpServletRequest request, HttpServletResponse response, 
-                                    UserDTO currentUser, Long quizId) 
+    public void handleQuizCompletion(HttpServletRequest request, HttpServletResponse response,
+                                     UserDTO currentUser, Long quizId)
             throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession();
-        
+
         String currentAnswer = request.getParameter("answer");
         if (currentAnswer != null && !currentAnswer.trim().isEmpty()) {
             saveAnswerToDatabase(request, currentUser, quizId, currentAnswer);
         }
-        
+
         Long quizStartTime = (Long) session.getAttribute("quizStartTime");
         LocalDateTime startedAt;
         int totalTimeSeconds;
-        
+
         if (quizStartTime != null) {
             long secondsAgo = (System.currentTimeMillis() - quizStartTime) / 1000;
             startedAt = LocalDateTime.now().minusSeconds(secondsAgo);
@@ -74,38 +74,38 @@ public class QuizAnswerHandler {
             startedAt = LocalDateTime.now().minusMinutes(10);
             totalTimeSeconds = 600;
         }
-        
+
         List<ParticipantAnswer> allAnswers = participantAnswerRepository.getAllAnswers((long) currentUser.getId(), quizId);
-        
+
         double totalScore = 0.0;
         double maxPossibleScore = 0.0;
-        
+
         List<Question> questions = quizService.getQuizQuestions(quizId);
         for (Question question : questions) {
             maxPossibleScore += question.getPoints();
         }
-        
+
         for (ParticipantAnswer answer : allAnswers) {
             totalScore += answer.getPointsEarned();
         }
-        
+
         QuizCompletion completion = new QuizCompletion(
-            (long) currentUser.getId(),
-            quizId,
-            totalScore,
-            maxPossibleScore,
-            startedAt,
-            totalTimeSeconds
+                (long)currentUser.getId(),
+                quizId,
+                totalScore,
+                maxPossibleScore,
+                startedAt,
+                totalTimeSeconds
         );
-        
+
         completion.setFinishedAt(LocalDateTime.now());
-        
+
         Long completionId = quizCompletionRepository.saveCompletion(completion);
-        
+
         if (completionId != null) {
             cleanupSession(session, questions.size());
-            
-            response.sendRedirect("quiz-view?quizId=" + quizId + "&completed=true&score=" + totalScore + "&maxScore=" + maxPossibleScore);
+
+            response.sendRedirect("quiz-completion?quizId=" + quizId + "&score=" + totalScore + "&maxScore=" + maxPossibleScore);
         } else {
             request.setAttribute("errorMessage", "Failed to save quiz completion. Please try again.");
             request.getRequestDispatcher("/WEB-INF/error.jsp").forward(request, response);

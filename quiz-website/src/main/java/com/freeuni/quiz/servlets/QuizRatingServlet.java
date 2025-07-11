@@ -98,7 +98,7 @@ public class QuizRatingServlet extends HttpServlet {
             boolean success = ratingService.rateQuiz(user.getId(), quizId, rating);
 
             if (success) {
-                response.sendRedirect("quiz-details?id=" + quizId);
+                response.sendRedirect("quiz-view?quizId=" + quizId);
             } else {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save rating");
             }
