@@ -134,7 +134,7 @@
     <a href="#">🏆 Achievements</a>
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
     <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
-    <a href="#">📊 History</a>
+    <a href="${pageContext.request.contextPath}/history">📊 History</a>
 </div>
 
 <div class="main-content">
