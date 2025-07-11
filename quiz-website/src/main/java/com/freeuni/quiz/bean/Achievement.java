@@ -4,31 +4,37 @@ import java.time.LocalDateTime;
 
 public class Achievement {
     private Long id;
-    private int userId;
-    private String type;
-    private LocalDateTime achievedAt;
+    private String name;
+    private String description;
+    private String iconUrl;
+    private LocalDateTime createdAt;
 
     public Achievement() {}
 
-    public Achievement(int userId, String type, LocalDateTime achievedAt) {
-        this.userId = userId;
-        this.type = type;
-        this.achievedAt = achievedAt;
+    public Achievement(Long id) {
+        this.id = id;
+    }
+
+    public Achievement(String name, String description, String iconUrl, LocalDateTime createdAt) {
+        this.name = name;
+        this.description = description;
+        this.iconUrl = iconUrl;
+        this.createdAt = createdAt;
     }
 
     public Long getId() { return id; }
-
     public void setId(Long id) { this.id = id; }
 
-    public int getUserId() { return userId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setUserId(int userId) { this.userId = userId; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public String getType() { return type; }
+    public String getIconUrl() { return iconUrl; }
+    public void setIconUrl(String iconUrl) { this.iconUrl = iconUrl; }
 
-    public void setType(String type) { this.type = type; }
-
-    public LocalDateTime getAchievedAt() { return achievedAt; }
-
-    public void setAchievedAt(LocalDateTime achievedAt) { this.achievedAt = achievedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
+

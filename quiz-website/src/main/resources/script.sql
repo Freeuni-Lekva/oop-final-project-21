@@ -157,7 +157,7 @@ CREATE TABLE quiz_challenges (
 );
 CREATE TABLE achievements (
                               id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                              name VARCHAR(100) NOT NULL,
+                              name VARCHAR(100) NOT NULL UNIQUE,
                               description TEXT,
                               icon_url VARCHAR(2083),
                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -171,3 +171,9 @@ CREATE TABLE user_achievements (
                                    FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE,
                                    UNIQUE (user_id, achievement_id)
 );
+INSERT INTO achievements (name, description, icon_url, created_at) VALUES
+                                                                       ('AMATEUR_AUTHOR', 'Created at least 1 quiz', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
+                                                                       ('PROLIFIC_AUTHOR', 'Created at least 5 quizzes', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
+                                                                       ('PRODIGIOUS_AUTHOR', 'Created at least 10 quizzes', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
+                                                                       ('QUIZ_MACHINE', 'Taken at least 10 quizzes', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
+                                                                       ('QUIZ_MASTER', 'Mastered a quiz with high score', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW());
