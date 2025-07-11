@@ -224,6 +224,46 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
         }
     }
 
+    @Override
+    public List<QuizCompletion> findRecentCompletionsByUser(Long userId, int limit) {
+        String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? " +
+                    "AND finished_at IS NOT NULL ORDER BY finished_at DESC LIMIT ?";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setLong(1, userId);
+            statement.setInt(2, limit);
+            
+            return executeQuizCompletionQuery(statement);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding recent completions by user", e);
+        }
+    }
+
+    @Override
+    public List<QuizCompletion> findRecentCompletionsByFriends(Long userId, int limit) {
+        String sql = "SELECT qc.* FROM quiz_completions qc " +
+                    "JOIN friendships f ON (qc.participant_user_id = f.friendSenderId OR qc.participant_user_id = f.friendReceiverId) " +
+                    "WHERE (f.friendSenderId = ? OR f.friendReceiverId = ?) " +
+                    "AND qc.participant_user_id != ? " +
+                    "AND qc.finished_at IS NOT NULL " +
+                    "ORDER BY qc.finished_at DESC LIMIT ?";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setLong(1, userId);
+            statement.setLong(2, userId);
+            statement.setLong(3, userId);
+            statement.setInt(4, limit);
+            
+            return executeQuizCompletionQuery(statement);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding recent completions by friends", e);
+        }
+    }
+
     private List<QuizCompletion> executeQuizCompletionQuery(PreparedStatement statement) throws SQLException {
         List<QuizCompletion> completions = new ArrayList<>();
         
@@ -254,5 +294,27 @@ public class QuizCompletionRepositoryImpl implements QuizCompletionRepository {
         completion.setTotalTimeMinutes(resultSet.getInt("total_time_minutes"));
         
         return completion;
+    }
+
+    @Override
+    public Optional<QuizCompletion> findUserCompletionForQuiz(Long userId, Long quizId) {
+        String sql = "SELECT * FROM quiz_completions WHERE participant_user_id = ? AND test_id = ? " +
+                    "AND finished_at IS NOT NULL ORDER BY finished_at DESC LIMIT 1";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setLong(1, userId);
+            statement.setLong(2, quizId);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapResultSetToQuizCompletion(resultSet));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding user completion for quiz", e);
+        }
     }
 } 
