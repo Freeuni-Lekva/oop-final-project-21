@@ -15,13 +15,12 @@ public class FriendshipRequestDAO {
     }
 
     public boolean addFriendshipRequest(FriendshipRequest request) throws SQLException {
-        String sql = "INSERT INTO friendship_requests (requestSender_id, requestReceiver_id, timestamp) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO friendship_requests (requestSender_id, requestReceiver_id) VALUES (?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, request.getRequestSenderId());
             stmt.setInt(2, request.getRequestReceiverId());
-            stmt.setTimestamp(3, request.getTimestamp());
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) return false;
