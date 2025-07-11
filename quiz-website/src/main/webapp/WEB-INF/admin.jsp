@@ -1,10 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.freeuni.quiz.bean.User" %>
 <%@ page import="com.freeuni.quiz.bean.Category" %>
+<%@ page import="com.freeuni.quiz.DTO.AnnouncementDTO" %>
 <%@ page import="java.util.List" %>
 <%
     List<User> users = (List<User>) request.getAttribute("users");
     List<Category> categories = (List<Category>) request.getAttribute("categories");
+    List<AnnouncementDTO> announcements = (List<AnnouncementDTO>) request.getAttribute("announcements");
     String message = (String) request.getAttribute("message");
     String messageType = (String) request.getAttribute("messageType");
 %>
@@ -155,6 +157,86 @@
             </div>
         <% } %>
         
+        <!-- Announcement Management Section -->
+        <div class="section">
+            <h2>📢 Announcement Management</h2>
+            
+            <!-- Create Announcement Form -->
+            <form method="post" action="admin">
+                <input type="hidden" name="action" value="createAnnouncement">
+                <div class="form-group">
+                    <label for="announcementTitle">Title:</label>
+                    <input type="text" id="announcementTitle" name="announcementTitle" required maxlength="255">
+                </div>
+                <div class="form-group">
+                    <label for="announcementContent">Content:</label>
+                    <textarea id="announcementContent" name="announcementContent" required maxlength="1000"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">Create Announcement</button>
+                </div>
+            </form>
+            
+            <!-- Announcements Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Content</th>
+                        <th>Author</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (announcements != null && !announcements.isEmpty()) { %>
+                        <% for (AnnouncementDTO announcement : announcements) { %>
+                            <tr>
+                                <td><%= announcement.getId() %></td>
+                                <td><%= announcement.getTitle() %></td>
+                                <td><%= announcement.getContent().length() > 100 ? announcement.getContent().substring(0, 100) + "..." : announcement.getContent() %></td>
+                                <td><%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Unknown" %></td>
+                                <td><%= announcement.getCreatedAt() %></td>
+                                <td>
+                                    <% if (announcement.isActive()) { %>
+                                        <span style="color: green;">Active</span>
+                                    <% } else { %>
+                                        <span style="color: red;">Inactive</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <% if (announcement.isActive()) { %>
+                                        <form method="post" action="admin" style="display: inline;">
+                                            <input type="hidden" name="action" value="deactivateAnnouncement">
+                                            <input type="hidden" name="announcementId" value="<%= announcement.getId() %>">
+                                            <button type="submit" class="btn btn-danger" 
+                                                    onclick="return confirm('Are you sure you want to deactivate this announcement?')">
+                                                Deactivate
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                    <form method="post" action="admin" style="display: inline;">
+                                        <input type="hidden" name="action" value="deleteAnnouncement">
+                                        <input type="hidden" name="announcementId" value="<%= announcement.getId() %>">
+                                        <button type="submit" class="btn btn-danger" 
+                                                onclick="return confirm('Are you sure you want to delete this announcement?')">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% } %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #666;">No announcements found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+        
         <!-- Category Management Section -->
         <div class="section">
             <h2>📁 Category Management</h2>
@@ -276,6 +358,20 @@
             <h2>📊 Statistics</h2>
             <p><strong>Total Users:</strong> <%= users != null ? users.size() : 0 %></p>
             <p><strong>Total Categories:</strong> <%= categories != null ? categories.size() : 0 %></p>
+            <p><strong>Total Announcements:</strong> <%= announcements != null ? announcements.size() : 0 %></p>
+            <p><strong>Active Announcements:</strong> 
+                <%
+                    int activeAnnouncementCount = 0;
+                    if (announcements != null) {
+                        for (AnnouncementDTO announcement : announcements) {
+                            if (announcement.isActive()) {
+                                activeAnnouncementCount++;
+                            }
+                        }
+                    }
+                %>
+                <%= activeAnnouncementCount %>
+            </p>
             <p><strong>Admin Users:</strong> 
                 <%
                     int adminCount = 0;
