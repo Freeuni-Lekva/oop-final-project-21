@@ -10,20 +10,62 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f0f0f0;
-            padding: 2rem;
+            margin: 0;
+            background-color: #13081f;
+            color: white;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #240955;
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            padding: 20px 10px;
+        }
+        .sidebar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 10px;
+            object-fit: cover;
+            background-color: #ccc;
+        }
+        .sidebar .username {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
         }
         .edit-container {
-            background: white;
+            background: #1a0b2e;
             padding: 2rem;
             border-radius: 10px;
             max-width: 500px;
             margin: auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
         h2 {
             text-align: center;
             margin-bottom: 1.5rem;
+            color: #e0aaff;
         }
         form {
             display: flex;
@@ -33,6 +75,7 @@
             font-weight: bold;
             margin-top: 1rem;
             margin-bottom: 0.5rem;
+            color: #d1d8ff;
         }
         input[type="text"],
         input[type="email"],
@@ -40,9 +83,11 @@
             padding: 8px;
             font-size: 14px;
             border-radius: 4px;
-            border: 1px solid #ccc;
+            border: 1px solid #444;
             box-sizing: border-box;
             width: 100%;
+            background-color: #240955;
+            color: white;
         }
         /* Fix: disable resizing on textarea */
         textarea {
@@ -52,7 +97,7 @@
         button {
             margin-top: 2rem;
             padding: 10px;
-            background-color: #007bff;
+            background-color: #10b981;
             color: white;
             border: none;
             border-radius: 5px;
@@ -61,7 +106,7 @@
             transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #059669;
         }
         .error {
             color: red;
@@ -71,7 +116,29 @@
     </style>
 </head>
 <body>
-<div class="edit-container">
+
+<div class="sidebar">
+    <% if (user.getImageURL() != null && !user.getImageURL().isEmpty()) { %>
+    <img src="<%= user.getImageURL() %>" alt="Profile Image">
+    <% } else { %>
+    <img src="https://via.placeholder.com/100" alt="No Image">
+    <% } %>
+    <div class="username"><%= user.getUserName() %></div>
+    
+    <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+    <a href="${pageContext.request.contextPath}/profile" style="background-color: rgba(255, 255, 255, 0.2);">👤 Profile</a>
+    <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
+    <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
+    <a href="#">🏆 Achievements</a>
+    <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+    <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
+    <a href="#">📊 History</a>
+</div>
+
+<div class="main-content">
+    <div class="edit-container">
     <h2>Edit Profile - <%= user.getUserName() %></h2>
 
     <% if (request.getAttribute("error") != null) { %>
@@ -96,6 +163,7 @@
 
         <button type="submit">Update Profile</button>
     </form>
+    </div>
 </div>
 </body>
 </html>
