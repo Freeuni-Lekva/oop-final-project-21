@@ -12,6 +12,8 @@ import com.freeuni.quiz.service.UserService;
 import com.freeuni.quiz.service.QuizChallengeService;
 import com.freeuni.quiz.service.FriendshipRequestService;
 import com.freeuni.quiz.service.MessageService;
+import com.freeuni.quiz.service.AnnouncementService;
+import com.freeuni.quiz.DTO.AnnouncementDTO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -37,6 +39,7 @@ public class HomeServlet extends HttpServlet {
     private QuizChallengeService challengeService;
     private FriendshipRequestService friendRequestService;
     private MessageService messageService;
+    private AnnouncementService announcementService;
 
     @Override
     public void init() throws ServletException {
@@ -47,6 +50,7 @@ public class HomeServlet extends HttpServlet {
         this.challengeService = new QuizChallengeService(dataSource);
         this.friendRequestService = new FriendshipRequestService(dataSource);
         this.messageService = new MessageService(dataSource);
+        this.announcementService = new AnnouncementService(dataSource);
     }
 
     @Override
@@ -71,6 +75,7 @@ public class HomeServlet extends HttpServlet {
             List<QuizChallengeDTO> recentChallenges = challengeService.getRecentReceivedChallenges(currentUser.getId(), 10, userService, quizService);
             List<FriendshipRequest> recentFriendRequests = friendRequestService.getRecentRequestsReceivedByUser(currentUser.getId(), 10);
             LinkedHashMap<Message, UserDTO> recentConversations = messageService.getRecentConversationsWithProfileDetails(currentUser.getId(), 10);
+            List<AnnouncementDTO> recentAnnouncements = announcementService.getRecentAnnouncements(3);
             
             Map<Long, Quiz> quizMap = userRecentCompletions.stream()
                 .map(completion -> quizService.getQuizById(completion.getTestId()))
@@ -119,6 +124,7 @@ public class HomeServlet extends HttpServlet {
             request.setAttribute("recentFriendRequests", recentFriendRequests);
             request.setAttribute("recentConversations", recentConversations);
             request.setAttribute("friendRequestSenders", friendRequestSenders);
+            request.setAttribute("recentAnnouncements", recentAnnouncements);
 
             request.getRequestDispatcher("home.jsp").forward(request, response);
             

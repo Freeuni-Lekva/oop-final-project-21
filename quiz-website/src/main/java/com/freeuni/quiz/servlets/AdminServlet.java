@@ -2,9 +2,11 @@ package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.DAO.UserDAO;
 import com.freeuni.quiz.DTO.UserDTO;
+import com.freeuni.quiz.DTO.AnnouncementDTO;
 import com.freeuni.quiz.bean.Category;
 import com.freeuni.quiz.bean.User;
 import com.freeuni.quiz.service.CategoryService;
+import com.freeuni.quiz.service.AnnouncementService;
 
 
 import javax.servlet.ServletException;
@@ -22,6 +24,7 @@ import java.util.List;
 public class AdminServlet extends HttpServlet {
     private UserDAO userDAO;
     private CategoryService categoryService;
+    private AnnouncementService announcementService;
 
     @Override
     public void init() throws ServletException {
@@ -29,6 +32,7 @@ public class AdminServlet extends HttpServlet {
             DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
             userDAO = new UserDAO(dataSource);
             categoryService = new CategoryService(dataSource);
+            announcementService = new AnnouncementService(dataSource);
         } catch (Exception e) {
             throw new ServletException("Failed to initialize AdminServlet", e);
         }
@@ -57,9 +61,11 @@ public class AdminServlet extends HttpServlet {
         try {
             List<User> allUsers = userDAO.findAll();
             List<Category> allCategories = categoryService.getAllActiveCategories();
+            List<AnnouncementDTO> allAnnouncements = announcementService.getAllAnnouncements();
             
             request.setAttribute("users", allUsers);
             request.setAttribute("categories", allCategories);
+            request.setAttribute("announcements", allAnnouncements);
             
             request.getRequestDispatcher("WEB-INF/admin.jsp").forward(request, response);
         } catch (SQLException e) {
@@ -138,6 +144,68 @@ public class AdminServlet extends HttpServlet {
                         message = "Category deleted successfully";
                     } else {
                         message = "Failed to delete category";
+                        messageType = "error";
+                    }
+                    break;
+
+                case "createAnnouncement":
+                    String announcementTitle = request.getParameter("announcementTitle");
+                    String announcementContent = request.getParameter("announcementContent");
+                    
+                    if (announcementTitle == null || announcementTitle.trim().isEmpty()) {
+                        message = "Announcement title is required";
+                        messageType = "error";
+                    } else if (announcementContent == null || announcementContent.trim().isEmpty()) {
+                        message = "Announcement content is required";
+                        messageType = "error";
+                    } else {
+                        try {
+                            boolean created = announcementService.createAnnouncement(
+                                announcementTitle.trim(), 
+                                announcementContent.trim(), 
+                                currentUser.getId()
+                            );
+                            if (created) {
+                                message = "Announcement created successfully";
+                            } else {
+                                message = "Failed to create announcement";
+                                messageType = "error";
+                            }
+                        } catch (IllegalArgumentException e) {
+                            message = e.getMessage();
+                            messageType = "error";
+                        }
+                    }
+                    break;
+
+                case "deleteAnnouncement":
+                    long announcementId = Long.parseLong(request.getParameter("announcementId"));
+                    try {
+                        boolean deletedAnnouncement = announcementService.deleteAnnouncement(announcementId, currentUser.getId());
+                        if (deletedAnnouncement) {
+                            message = "Announcement deleted successfully";
+                        } else {
+                            message = "Failed to delete announcement";
+                            messageType = "error";
+                        }
+                    } catch (IllegalArgumentException e) {
+                        message = e.getMessage();
+                        messageType = "error";
+                    }
+                    break;
+
+                case "deactivateAnnouncement":
+                    long deactivateId = Long.parseLong(request.getParameter("announcementId"));
+                    try {
+                        boolean deactivated = announcementService.deactivateAnnouncement(deactivateId, currentUser.getId());
+                        if (deactivated) {
+                            message = "Announcement deactivated successfully";
+                        } else {
+                            message = "Failed to deactivate announcement";
+                            messageType = "error";
+                        }
+                    } catch (IllegalArgumentException e) {
+                        message = e.getMessage();
                         messageType = "error";
                     }
                     break;
