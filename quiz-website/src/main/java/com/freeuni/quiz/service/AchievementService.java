@@ -1,49 +1,44 @@
 package com.freeuni.quiz.service;
 
+import com.freeuni.quiz.DAO.AchievementDAO;
 import com.freeuni.quiz.bean.Achievement;
-import com.freeuni.quiz.repository.AchievementRepository;
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.QuizRepository;
+import com.freeuni.quiz.bean.UserAchievement;
+
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.List;
 import java.time.LocalDateTime;
 
 public class AchievementService {
-    private final AchievementRepository achievementRepository;
-    private final QuizRepository quizRepository;
-    private final QuizCompletionRepository quizCompletionRepository;
+    private final AchievementDAO achievementDAO;
+    private final List<AchievementCriteria> criteriaList;
 
-    public AchievementService(AchievementRepository achievementRepo,
-                              QuizRepository quizRepo,
-                              QuizCompletionRepository completionRepo) {
-        this.achievementRepository = achievementRepo;
-        this.quizRepository = quizRepo;
-        this.quizCompletionRepository = completionRepo;
+    public AchievementService(DataSource dataSource) {
+        this.achievementDAO = new AchievementDAO(dataSource);
+        this.criteriaList = List.of(
+                new AmateurAuthorCriteria(dataSource),
+                new ProlificAuthorCriteria(dataSource),
+                new ProdigiousAuthorCriteria(dataSource),
+                new QuizMachineCriteria(dataSource),
+                new QuizMasterCriteria(dataSource)
+        );
     }
 
-    public void checkAchievements(int userId) {
-        int createdCount = quizRepository.findByCreator((long)userId, 0, Integer.MAX_VALUE).size();
-        int takenCount = quizCompletionRepository.findByParticipant((long) userId).size();
-
-        if (createdCount >= 1 && !achievementRepository.exists(userId, "AMATEUR_AUTHOR")) {
-            award(userId, "AMATEUR_AUTHOR");
-        }
-        if (createdCount >= 5 && !achievementRepository.exists(userId, "PROLIFIC_AUTHOR")) {
-            award(userId, "PROLIFIC_AUTHOR");
-        }
-        if (createdCount >= 10 && !achievementRepository.exists(userId, "PRODIGIOUS_AUTHOR")) {
-            award(userId, "PRODIGIOUS_AUTHOR");
-        }
-        if (takenCount >= 10 && !achievementRepository.exists(userId, "QUIZ_MACHINE")) {
-            award(userId, "QUIZ_MACHINE");
+    public void checkAndAwardAchievements(int userId) throws SQLException {
+        for (AchievementCriteria criteria : criteriaList) {
+            if (criteria.isSatisfied(userId)) {
+                String achievementName = criteria.getAchievementName();
+                Long achievementId = achievementDAO.findByName(achievementName).getId();
+                if (achievementId != null && !achievementDAO.userHasAchievement(userId, achievementId)) {
+                    achievementDAO.awardAchievementToUser(
+                            new UserAchievement(userId, new Achievement(achievementId), LocalDateTime.now())
+                    );
+                }
+            }
         }
     }
 
-    public List<Achievement> getAchievementsByUser(int userId) {
-        return achievementRepository.findByUserId(userId);
-    }
-
-    public void award(int userId, String type) {
-        Achievement achievement = new Achievement(userId, type, LocalDateTime.now());
-        achievementRepository.saveAchievement(achievement);
+    public List<UserAchievement> getUserAchievements(int userId) throws SQLException {
+        return achievementDAO.getUserAchievements(userId);
     }
 }
