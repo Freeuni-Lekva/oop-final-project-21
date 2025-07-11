@@ -1,7 +1,8 @@
 package com.freeuni.quiz.repository;
 
+import com.freeuni.quiz.DAO.QuizCompletionDAO;
 import com.freeuni.quiz.bean.QuizCompletion;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -16,9 +17,9 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
-public class QuizCompletionRepositoryTest {
+public class QuizCompletionDAOTest {
     private static BasicDataSource basicDataSource;
-    private QuizCompletionRepository completionRepository;
+    private QuizCompletionDAO completionRepository;
 
     @BeforeClass
     public static void setUpDatabase() throws SQLException {
@@ -46,7 +47,7 @@ public class QuizCompletionRepositoryTest {
 
     @Before
     public void setUp() throws SQLException {
-        completionRepository = new QuizCompletionRepositoryImpl(basicDataSource);
+        completionRepository = new QuizCompletionDAOImpl(basicDataSource);
 
         try (Connection connection = basicDataSource.getConnection();
              Statement statement = connection.createStatement()) {
@@ -205,7 +206,7 @@ public class QuizCompletionRepositoryTest {
 
     @Test(expected = RuntimeException.class)
     public void testFindRecentCompletionsByFriendsThrowsException() {
-        QuizCompletionRepository brokenRepo = new QuizCompletionRepositoryImpl(new BasicDataSource() {{
+        QuizCompletionDAO brokenRepo = new QuizCompletionDAOImpl(new BasicDataSource() {{
             setUrl("jdbc:h2:mem:broken;INIT=RUNSCRIPT FROM 'non_existing.sql'");
             setUsername("sa");
             setPassword("");
@@ -216,7 +217,7 @@ public class QuizCompletionRepositoryTest {
 
     @Test(expected = RuntimeException.class)
     public void testSaveCompletionThrowsException() {
-        QuizCompletionRepository brokenRepo = new QuizCompletionRepositoryImpl(new BasicDataSource() {{
+        QuizCompletionDAO brokenRepo = new QuizCompletionDAOImpl(new BasicDataSource() {{
             setUrl("jdbc:h2:mem:broken2;INIT=RUNSCRIPT FROM 'non_existing.sql'");
             setUsername("sa");
             setPassword("");
@@ -228,7 +229,7 @@ public class QuizCompletionRepositoryTest {
 
     @Test(expected = RuntimeException.class)
     public void testFindByIdThrowsException() {
-        QuizCompletionRepository brokenRepo = new QuizCompletionRepositoryImpl(new BasicDataSource() {{
+        QuizCompletionDAO brokenRepo = new QuizCompletionDAOImpl(new BasicDataSource() {{
             setUrl("jdbc:h2:mem:broken3;INIT=RUNSCRIPT FROM 'non_existing.sql'");
             setUsername("sa");
             setPassword("");

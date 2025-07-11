@@ -1,9 +1,9 @@
 package com.freeuni.quiz.service;
 
+import com.freeuni.quiz.DAO.QuizCompletionDAO;
 import com.freeuni.quiz.bean.*;
 import com.freeuni.quiz.DTO.PopularQuizDTO;
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -24,7 +24,7 @@ class QuizServiceTest {
     private QuizService quizService;
     private Quiz testQuiz;
     private Question testQuestion;
-    private static QuizCompletionRepository quizCompletionRepository;
+    private static QuizCompletionDAO quizCompletionRepository;
 
     @BeforeAll
     static void setupClass() throws Exception {
@@ -33,7 +33,7 @@ class QuizServiceTest {
         ds.setUser("sa");
         ds.setPassword("");
         dataSource = ds;
-        quizCompletionRepository=new QuizCompletionRepositoryImpl(ds);
+        quizCompletionRepository=new QuizCompletionDAOImpl(ds);
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
@@ -463,15 +463,13 @@ class QuizServiceTest {
     }
     @Test
     void getCompletionCountsForQuizzes_ShouldReturnCorrectMap() throws Exception {
-        QuizService quizService = new QuizService(null); // no DataSource needed here
+        QuizService quizService = new QuizService(null);
 
-        // Mock the QuizCompletionRepository
-        QuizCompletionRepository mockQuizCompletionRepository = Mockito.mock(QuizCompletionRepository.class);
+        QuizCompletionDAO mockQuizCompletionDAO = Mockito.mock(QuizCompletionDAO.class);
 
-        // Inject the mock into the private final field using reflection
         java.lang.reflect.Field field = QuizService.class.getDeclaredField("quizCompletionRepository");
         field.setAccessible(true);
-        field.set(quizService, mockQuizCompletionRepository);
+        field.set(quizService, mockQuizCompletionDAO);
 
         Quiz quiz1 = new Quiz();
         quiz1.setId(1L);
@@ -484,7 +482,7 @@ class QuizServiceTest {
         completionCounts.put(1L, 5);
         completionCounts.put(2L, 10);
 
-        when(mockQuizCompletionRepository.getCompletionCountsByQuizzes(anyList())).thenReturn(completionCounts);
+        when(mockQuizCompletionDAO.getCompletionCountsByQuizzes(anyList())).thenReturn(completionCounts);
 
         Map<Integer, Integer> result = quizService.getCompletionCountsForQuizzes(quizzes);
 
@@ -492,20 +490,18 @@ class QuizServiceTest {
         assertEquals(5, result.get(1));
         assertEquals(10, result.get(2));
 
-        verify(mockQuizCompletionRepository).getCompletionCountsByQuizzes(anyList());
+        verify(mockQuizCompletionDAO).getCompletionCountsByQuizzes(anyList());
     }
     @Test
     void getAverageScoresForQuizzes_ShouldReturnCorrectMap() {
-        QuizService quizService = new QuizService(null); // pass null DataSource
+        QuizService quizService = new QuizService(null);
 
-        // Create a mock QuizCompletionRepository
-        QuizCompletionRepository mockQuizCompletionRepository = Mockito.mock(QuizCompletionRepository.class);
+        QuizCompletionDAO mockQuizCompletionDAO = Mockito.mock(QuizCompletionDAO.class);
 
-        // Use reflection to inject mock into private final field
         try {
             java.lang.reflect.Field field = QuizService.class.getDeclaredField("quizCompletionRepository");
             field.setAccessible(true);
-            field.set(quizService, mockQuizCompletionRepository);
+            field.set(quizService, mockQuizCompletionDAO);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -521,7 +517,7 @@ class QuizServiceTest {
         averageScores.put(1L, 85.5);
         averageScores.put(2L, 90.0);
 
-        when(mockQuizCompletionRepository.getAverageScoresByQuizzes(anyList())).thenReturn(averageScores);
+        when(mockQuizCompletionDAO.getAverageScoresByQuizzes(anyList())).thenReturn(averageScores);
 
         Map<Integer, Double> result = quizService.getAverageScoresForQuizzes(quizzes);
 
@@ -529,7 +525,7 @@ class QuizServiceTest {
         assertEquals(85.5, result.get(1));
         assertEquals(90.0, result.get(2));
 
-        verify(mockQuizCompletionRepository).getAverageScoresByQuizzes(anyList());
+        verify(mockQuizCompletionDAO).getAverageScoresByQuizzes(anyList());
     }
 
     @Test
