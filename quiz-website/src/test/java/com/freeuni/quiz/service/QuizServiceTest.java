@@ -79,6 +79,7 @@ class QuizServiceTest {
                     "question_data MEDIUMBLOB NOT NULL," +
                     "question_title VARCHAR(128)," +
                     "question_type ENUM('TEXT', 'MULTIPLE_CHOICE', 'IMAGE') DEFAULT 'TEXT'," +
+                    "points DOUBLE DEFAULT 10," +
                     "FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE CASCADE," +
                     "FOREIGN KEY (category_id) REFERENCES quiz_categories(id) ON DELETE CASCADE" +
                     ")");
@@ -139,6 +140,7 @@ class QuizServiceTest {
         testQuestion.setCategoryId(10L);
         testQuestion.setQuestionTitle("Test Question");
         testQuestion.setQuestionType(QuestionType.TEXT);
+        testQuestion.setPoints(10.0);
     }
 
     @Test
@@ -544,11 +546,12 @@ class QuizServiceTest {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             String insert = String.format(
-                    "INSERT INTO test_questions (author_user_id, category_id, question_title, question_type, question_data) VALUES (%d, %d, '%s', '%s', ?)",
+                    "INSERT INTO test_questions (author_user_id, category_id, question_title, question_type, question_data, points) VALUES (%d, %d, '%s', '%s', ?, %s)",
                     question.getAuthorUserId(),
                     question.getCategoryId(),
                     question.getQuestionTitle(),
-                    question.getQuestionType().name()
+                    question.getQuestionType().name(),
+                    question.getPoints() != null ? question.getPoints() : 10.0
             );
             var ps = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
             ps.setBytes(1, new byte[0]);
