@@ -4,12 +4,6 @@ import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.service.QuizService;
 import com.freeuni.quiz.service.UserService;
-import com.freeuni.quiz.repository.QuizRepository;
-import com.freeuni.quiz.repository.QuestionRepository;
-import com.freeuni.quiz.repository.QuizQuestionMappingRepository;
-import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuestionRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizQuestionMappingRepositoryImpl;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -36,11 +30,8 @@ public class SearchQuizzesServlet extends HttpServlet {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         userService = new UserService(dataSource);
 
-        QuizRepository quizRepository = new QuizRepositoryImpl(dataSource);
-        QuestionRepository questionRepository = new QuestionRepositoryImpl(dataSource);
-        QuizQuestionMappingRepository quizQuestionMappingRepository = new QuizQuestionMappingRepositoryImpl(dataSource);
 
-        quizService = new QuizService(quizRepository, questionRepository, quizQuestionMappingRepository);
+        quizService = new QuizService(dataSource);
     }
 
     @Override

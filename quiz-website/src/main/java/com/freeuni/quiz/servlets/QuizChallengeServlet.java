@@ -2,12 +2,6 @@ package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.DTO.QuizChallengeDTO;
 import com.freeuni.quiz.DTO.UserDTO;
-import com.freeuni.quiz.repository.QuestionRepository;
-import com.freeuni.quiz.repository.QuizQuestionMappingRepository;
-import com.freeuni.quiz.repository.QuizRepository;
-import com.freeuni.quiz.repository.impl.QuestionRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizQuestionMappingRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
 import com.freeuni.quiz.service.*;
 
 import javax.servlet.ServletException;
@@ -16,6 +10,7 @@ import javax.servlet.http.*;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @WebServlet(urlPatterns = {"/quiz-challenges", "/challenges"})
 public class QuizChallengeServlet extends HttpServlet {
@@ -23,19 +18,15 @@ public class QuizChallengeServlet extends HttpServlet {
     private UserService userService;
     private QuizService quizService;
     private QuizChallengeManager challengeManager;
-    private FriendshipService friendshipService;
 
     @Override
     public void init() {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         userService = new UserService(dataSource);
-        QuizRepository quizRepository = new QuizRepositoryImpl(dataSource);
-        QuestionRepository questionRepository = new QuestionRepositoryImpl(dataSource);
-        QuizQuestionMappingRepository quizQuestionMappingRepository = new QuizQuestionMappingRepositoryImpl(dataSource);
 
-        quizService = new QuizService(quizRepository, questionRepository, quizQuestionMappingRepository);
+        quizService = new QuizService(dataSource);
         challengeService = new QuizChallengeService(dataSource);
-        friendshipService = new FriendshipService(dataSource);
+        FriendshipService friendshipService = new FriendshipService(dataSource);
         challengeManager = new QuizChallengeManager(challengeService, friendshipService);
     }
 
@@ -120,11 +111,7 @@ public class QuizChallengeServlet extends HttpServlet {
 
                 String quizUrl = challengeManager.acceptChallengeAndGetQuizUrl(challengeId, userService, quizService);
 
-                if (quizUrl != null) {
-                    resp.sendRedirect(quizUrl);
-                } else {
-                    resp.sendRedirect("quiz-challenges?error=Failed to accept challenge");
-                }
+                resp.sendRedirect(Objects.requireNonNullElse(quizUrl, "quiz-challenges?error=Failed to accept challenge"));
 
             } else if ("decline".equals(action)) {
                 Long challengeId = Long.parseLong(req.getParameter("challengeId"));
