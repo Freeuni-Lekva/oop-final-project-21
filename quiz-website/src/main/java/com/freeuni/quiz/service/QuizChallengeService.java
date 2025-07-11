@@ -4,8 +4,11 @@ import com.freeuni.quiz.DTO.QuizChallengeDTO;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.QuizChallenge;
+import com.freeuni.quiz.bean.QuizCompletion;
 import com.freeuni.quiz.repository.QuizChallengeRepository;
+import com.freeuni.quiz.repository.QuizCompletionRepository;
 import com.freeuni.quiz.repository.impl.QuizChallengeRepositoryImpl;
+import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -15,9 +18,11 @@ import java.util.Optional;
 
 public class QuizChallengeService {
     private final QuizChallengeRepository challengeRepository;
+    private final QuizCompletionRepository completionRepository;
 
     public QuizChallengeService(DataSource dataSource) {
         this.challengeRepository = new QuizChallengeRepositoryImpl(dataSource);
+        this.completionRepository = new QuizCompletionRepositoryImpl(dataSource);
     }
 
     public boolean sendChallenge(int challengerId, int challengedId, Long quizId, String message) {
@@ -32,6 +37,14 @@ public class QuizChallengeService {
     public List<QuizChallengeDTO> getReceivedChallenges(int userId, UserService userService, QuizService quizService) {
         List<QuizChallenge> challenges = challengeRepository.getChallengesReceivedByUser(userId);
         return convertToDTOs(challenges, userService, quizService);
+    }
+
+    public List<QuizChallengeDTO> getRecentReceivedChallenges(int userId, int limit, UserService userService, QuizService quizService) {
+        List<QuizChallenge> challenges = challengeRepository.getChallengesReceivedByUser(userId);
+        List<QuizChallenge> limitedChallenges = challenges.stream()
+            .limit(limit)
+            .collect(java.util.stream.Collectors.toList());
+        return convertToDTOs(limitedChallenges, userService, quizService);
     }
 
     public List<QuizChallengeDTO> getSentChallenges(int userId, UserService userService, QuizService quizService) {
@@ -87,7 +100,7 @@ public class QuizChallengeService {
 
             Quiz quiz = quizOpt.get();
 
-            return new QuizChallengeDTO(
+            QuizChallengeDTO dto = new QuizChallengeDTO(
                     challenge.getId(),
                     challenger,
                     challenged,
@@ -96,6 +109,16 @@ public class QuizChallengeService {
                     challenge.getCreatedAt(),
                     challenge.getStatus()
             );
+
+            Optional<QuizCompletion> challengerScore = completionRepository.findUserCompletionForQuiz(
+                    (long) challenge.getChallengerUserId(), challenge.getQuizId());
+            Optional<QuizCompletion> challengedScore = completionRepository.findUserCompletionForQuiz(
+                    (long) challenge.getChallengedUserId(), challenge.getQuizId());
+
+            challengerScore.ifPresent(dto::setChallengerScore);
+            challengedScore.ifPresent(dto::setChallengedScore);
+
+            return dto;
         } catch (SQLException e) {
             System.err.println("Error converting challenge to DTO: " + e.getMessage());
             return null;

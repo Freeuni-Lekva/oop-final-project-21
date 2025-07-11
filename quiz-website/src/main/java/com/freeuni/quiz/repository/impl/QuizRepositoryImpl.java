@@ -1,6 +1,7 @@
 package com.freeuni.quiz.repository.impl;
 
 import com.freeuni.quiz.bean.Quiz;
+import com.freeuni.quiz.DTO.PopularQuizDTO;
 import com.freeuni.quiz.repository.QuizRepository;
 
 import javax.sql.DataSource;
@@ -136,7 +137,7 @@ public class QuizRepositoryImpl implements QuizRepository {
     }
 
     @Override
-    public boolean updateLastQuestionNumber(Long quizId, Long questionNumber) {
+    public void updateLastQuestionNumber(Long quizId, Long questionNumber) {
         String sql = "UPDATE quizzes SET last_question_number = ? WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
@@ -144,8 +145,8 @@ public class QuizRepositoryImpl implements QuizRepository {
             
             statement.setLong(1, questionNumber);
             statement.setLong(2, quizId);
-            
-            return statement.executeUpdate() > 0;
+
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error updating last question number", e);
         }
@@ -166,6 +167,56 @@ public class QuizRepositoryImpl implements QuizRepository {
         }
     }
 
+    @Override
+    public List<PopularQuizDTO> findPopularQuizzesWithCompletionCount(int limit) {
+        String sql = "SELECT q.*, COUNT(qc.id) as completion_count FROM quizzes q " +
+                    "LEFT JOIN quiz_completions qc ON q.id = qc.test_id AND qc.finished_at IS NOT NULL " +
+                    "GROUP BY q.id, q.creator_user_id, q.category_id, q.last_question_number, q.created_at, q.test_title, q.test_description, q.time_limit_minutes " +
+                    "ORDER BY completion_count DESC " +
+                    "LIMIT ?";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setInt(1, limit);
+            
+            return executePopularQuizQuery(statement);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding popular quizzes with completion count", e);
+        }
+    }
+
+    @Override
+    public List<Quiz> findRecentlyCreatedQuizzes(int limit) {
+        String sql = "SELECT * FROM quizzes ORDER BY created_at DESC LIMIT ?";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setInt(1, limit);
+            
+            return executeQuizQuery(statement);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding recently created quizzes", e);
+        }
+    }
+
+    @Override
+    public List<Quiz> findRecentlyCreatedByUser(Long userId, int limit) {
+        String sql = "SELECT * FROM quizzes WHERE creator_user_id = ? ORDER BY created_at DESC LIMIT ?";
+        
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setLong(1, userId);
+            statement.setInt(2, limit);
+            
+            return executeQuizQuery(statement);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding recently created quizzes by user", e);
+        }
+    }
+
     private List<Quiz> executeQuizQuery(PreparedStatement statement) throws SQLException {
         List<Quiz> quizzes = new ArrayList<>();
         
@@ -176,6 +227,20 @@ public class QuizRepositoryImpl implements QuizRepository {
         }
         
         return quizzes;
+    }
+
+    private List<PopularQuizDTO> executePopularQuizQuery(PreparedStatement statement) throws SQLException {
+        List<PopularQuizDTO> popularQuizzes = new ArrayList<>();
+        
+        try (ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                Quiz quiz = mapResultSetToQuiz(resultSet);
+                int completionCount = resultSet.getInt("completion_count");
+                popularQuizzes.add(new PopularQuizDTO(quiz, completionCount));
+            }
+        }
+        
+        return popularQuizzes;
     }
 
     private Quiz mapResultSetToQuiz(ResultSet resultSet) throws SQLException {

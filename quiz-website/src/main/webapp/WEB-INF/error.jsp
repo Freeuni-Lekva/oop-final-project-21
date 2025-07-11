@@ -89,7 +89,7 @@
             <% } %>
         </div>
         <div class="error-actions">
-            <a href="${pageContext.request.contextPath}/home.jsp" class="error-btn error-btn-primary">
+            <a href="${pageContext.request.contextPath}/home" class="error-btn error-btn-primary">
                 🏠 Go to Home
             </a>
             <a href="javascript:history.back()" class="error-btn error-btn-secondary">

@@ -23,4 +23,10 @@ public interface QuizCompletionRepository {
     Map<Long, Integer> getCompletionCountsByQuizzes(List<Long> testIds);
 
     Map<Long, Double> getAverageScoresByQuizzes(List<Long> testIds);
+
+    List<QuizCompletion> findRecentCompletionsByUser(Long userId, int limit);
+
+    List<QuizCompletion> findRecentCompletionsByFriends(Long userId, int limit);
+
+    Optional<QuizCompletion> findUserCompletionForQuiz(Long userId, Long quizId);
 }

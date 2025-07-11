@@ -21,6 +21,46 @@
             background-color: #13081f;
             color: white;
         }
+        .sidebar {
+            width: 220px;
+            background-color: #240955;
+            color: white;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            padding: 20px 10px;
+        }
+        .sidebar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 10px;
+            object-fit: cover;
+            background-color: #ccc;
+        }
+        .sidebar .username {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
         .container {
             max-width: 600px;
             margin: 50px auto;
@@ -99,7 +139,28 @@
 </head>
 <body>
 
-<div class="container">
+<div class="sidebar">
+    <% if (user.getImageURL() != null && !user.getImageURL().isEmpty()) { %>
+    <img src="<%= user.getImageURL() %>" alt="Profile Image">
+    <% } else { %>
+    <img src="https://via.placeholder.com/100" alt="No Image">
+    <% } %>
+    <div class="username"><%= user.getUserName() %></div>
+    
+    <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+    <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
+    <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
+    <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
+    <a href="#">🏆 Achievements</a>
+    <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+    <a href="${pageContext.request.contextPath}/challenges" style="background-color: rgba(255, 255, 255, 0.2);">🎯 Challenges</a>
+    <a href="#">📊 History</a>
+</div>
+
+<div class="main-content">
+    <div class="container">
     <h2>Send Challenge</h2>
 
     <% if (error != null) { %>
@@ -240,6 +301,9 @@
         }
     });
 </script>
+
+    </div>
+</div>
 
 </body>
 </html>

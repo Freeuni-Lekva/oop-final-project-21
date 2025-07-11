@@ -74,12 +74,16 @@
         <% } %>
         <div class="username"><%= user.getUserName() %></div>
         
-        <a href="${pageContext.request.contextPath}/home.jsp">🏠 Home</a>
+        <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
         <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
+        <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
         <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
         <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
         <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
-        <a href="${pageContext.request.contextPath}/logout">🚪 Logout</a>
+        <a href="#">🏆 Achievements</a>
+        <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+        <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
+        <a href="#">📊 History</a>
     </div>
 
     <div class="main-content">

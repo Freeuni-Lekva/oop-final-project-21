@@ -2,6 +2,8 @@ package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.Question;
+import com.freeuni.quiz.bean.QuizCompletion;
+import com.freeuni.quiz.DTO.PopularQuizDTO;
 import com.freeuni.quiz.repository.QuestionRepository;
 import com.freeuni.quiz.repository.QuizCompletionRepository;
 import com.freeuni.quiz.repository.QuizQuestionMappingRepository;
@@ -159,6 +161,26 @@ public class QuizService {
 
     public Double getAverageScoreForQuiz(Long quizId) {
         return quizCompletionRepository.getAverageScoreByQuiz(quizId);
+    }
+
+    public List<PopularQuizDTO> getPopularQuizzesWithCompletionCount(int limit) {
+        return quizRepository.findPopularQuizzesWithCompletionCount(limit);
+    }
+
+    public List<Quiz> getRecentlyCreatedQuizzes(int limit) {
+        return quizRepository.findRecentlyCreatedQuizzes(limit);
+    }
+
+    public List<Quiz> getRecentlyCreatedByUser(Long userId, int limit) {
+        return quizRepository.findRecentlyCreatedByUser(userId, limit);
+    }
+
+    public List<QuizCompletion> getRecentCompletionsByUser(Long userId, int limit) {
+        return quizCompletionRepository.findRecentCompletionsByUser(userId, limit);
+    }
+
+    public List<QuizCompletion> getRecentCompletionsByFriends(Long userId, int limit) {
+        return quizCompletionRepository.findRecentCompletionsByFriends(userId, limit);
     }
 
     private void validateQuizData(Quiz quiz) {

@@ -1,6 +1,7 @@
 package com.freeuni.quiz.repository;
 
 import com.freeuni.quiz.bean.Quiz;
+import com.freeuni.quiz.DTO.PopularQuizDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +19,13 @@ public interface QuizRepository {
 
     boolean updateQuiz(Quiz quiz);
 
-    boolean updateLastQuestionNumber(Long quizId, Long questionNumber);
+    void updateLastQuestionNumber(Long quizId, Long questionNumber);
 
     boolean deleteQuiz(Long quizId);
+
+    List<PopularQuizDTO> findPopularQuizzesWithCompletionCount(int limit);
+
+    List<Quiz> findRecentlyCreatedQuizzes(int limit);
+
+    List<Quiz> findRecentlyCreatedByUser(Long userId, int limit);
 }

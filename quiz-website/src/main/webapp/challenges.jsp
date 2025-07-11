@@ -80,6 +80,26 @@
             margin: 5px 0;
             font-size: 14px;
         }
+        .score-info {
+            background-color: #1a0b2e;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #10b981;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        .score-label {
+            color: #b19cd9;
+        }
+        .score-value {
+            color: #10b981;
+            font-weight: bold;
+        }
         .buttons {
             margin-top: 10px;
         }
@@ -95,7 +115,7 @@
         .btn-red { background-color: #ef4444; color: white; }
         .btn-blue { background-color: #3b82f6; color: white; }
         .btn-gray { background-color: #6b7280; color: white; }
-        .btn-purple { background-color: #8b5cf6; color: white; }
+
         .empty {
             text-align: center;
             color: #9ca3af;
@@ -128,10 +148,17 @@
     <img src="https://via.placeholder.com/100" alt="No Image">
     <% } %>
     <div class="username"><%= user.getUserName() %></div>
-    <a href="${pageContext.request.contextPath}/home.jsp">Home</a>
-    <a href="${pageContext.request.contextPath}/profile">Profile</a>
-    <a href="${pageContext.request.contextPath}/friendshipRequests">Friend Requests</a>
-    <a href="${pageContext.request.contextPath}/quiz-challenges">Challenges</a>
+
+    <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+    <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
+    <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
+    <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
+    <a href="#">🏆 Achievements</a>
+    <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+    <a href="${pageContext.request.contextPath}/challenges" style="background-color: rgba(255, 255, 255, 0.2);">🎯 Challenges</a>
+    <a href="#">📊 History</a>
 </div>
 
 <div class="content">
@@ -145,6 +172,25 @@
             <h4><%= challenge.getQuiz().getTestTitle() %></h4>
             <p>From: <%= challenge.getChallenger().getUserName() %></p>
             <p>Status: <%= challenge.getStatus() %></p>
+            
+            <% if (challenge.getChallengerScore() != null || challenge.getChallengedScore() != null) { %>
+            <div class="score-info">
+                <div style="font-weight: bold; color: #e0aaff; margin-bottom: 8px;">📊 Quiz Scores:</div>
+                <% if (challenge.getChallengerScore() != null) { %>
+                <div class="score-row">
+                    <span class="score-label"><%= challenge.getChallenger().getUserName() %>:</span>
+                    <span class="score-value"><%= String.format("%.1f", challenge.getChallengerScore().getCompletionPercentage()) %>%</span>
+                </div>
+                <% } %>
+                <% if (challenge.getChallengedScore() != null) { %>
+                <div class="score-row">
+                    <span class="score-label">You:</span>
+                    <span class="score-value"><%= String.format("%.1f", challenge.getChallengedScore().getCompletionPercentage()) %>%</span>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+            
             <div class="buttons">
                 <% if ("PENDING".equals(challenge.getStatus())) { %>
                 <form method="post" style="display: inline;">
@@ -176,6 +222,25 @@
             <h4><%= challenge.getQuiz().getTestTitle() %></h4>
             <p>To: <%= challenge.getChallenged().getUserName() %></p>
             <p>Status: <%= challenge.getStatus() %></p>
+            
+            <% if (challenge.getChallengerScore() != null || challenge.getChallengedScore() != null) { %>
+            <div class="score-info">
+                <div style="font-weight: bold; color: #e0aaff; margin-bottom: 8px;">📊 Quiz Scores:</div>
+                <% if (challenge.getChallengerScore() != null) { %>
+                <div class="score-row">
+                    <span class="score-label">You:</span>
+                    <span class="score-value"><%= String.format("%.1f", challenge.getChallengerScore().getCompletionPercentage()) %>%</span>
+                </div>
+                <% } %>
+                <% if (challenge.getChallengedScore() != null) { %>
+                <div class="score-row">
+                    <span class="score-label"><%= challenge.getChallenged().getUserName() %>:</span>
+                    <span class="score-value"><%= String.format("%.1f", challenge.getChallengedScore().getCompletionPercentage()) %>%</span>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+            
             <div class="buttons">
                 <% if ("PENDING".equals(challenge.getStatus())) { %>
                 <form method="post" style="display: inline;">
