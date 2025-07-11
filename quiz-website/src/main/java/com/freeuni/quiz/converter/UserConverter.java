@@ -12,7 +12,8 @@ public class UserConverter {
                 user.getLastName(),
                 user.getEmail(),
                 user.getImageURL(),
-                user.getBio()
+                user.getBio(),
+                user.isAdmin()
         );
     }
 
@@ -24,7 +25,8 @@ public class UserConverter {
                 user.getLastName(),
                 user.getEmail(),
                 user.getImageURL(),
-                user.getBio()
+                user.getBio(),
+                user.isAdmin()
         );
     }
 }

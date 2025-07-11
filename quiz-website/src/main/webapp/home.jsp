@@ -17,6 +17,9 @@
         return;
     }
     
+    // Check if current user is admin
+    boolean isAdmin = user.isAdmin();
+    
     // Quiz-related data
     List<PopularQuizDTO> popularQuizzes = (List<PopularQuizDTO>) request.getAttribute("popularQuizzes");
     List<Quiz> recentlyCreatedQuizzes = (List<Quiz>) request.getAttribute("recentlyCreatedQuizzes");
@@ -179,6 +182,9 @@
     <a href="${pageContext.request.contextPath}/achievements">🏆 Achievements</a>
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
     <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
+    <% if (isAdmin) { %>
+    <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
+    <% } %>
     <a href="#">📊 History</a>
 </div>
 

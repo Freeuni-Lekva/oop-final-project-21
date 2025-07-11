@@ -40,7 +40,8 @@ public class MessageServiceTest {
                     userName VARCHAR(100) UNIQUE NOT NULL,
                     email VARCHAR(255) UNIQUE NOT NULL,
                     imageURL VARCHAR(2083),
-                    bio TEXT
+                    bio TEXT,
+                    isAdmin BOOLEAN NOT NULL DEFAULT FALSE
                 )
             """);
 
