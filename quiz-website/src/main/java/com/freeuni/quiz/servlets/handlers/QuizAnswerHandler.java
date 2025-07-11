@@ -90,7 +90,7 @@ public class QuizAnswerHandler {
         }
 
         QuizCompletion completion = new QuizCompletion(
-                (long) currentUser.getId(),
+                (long)currentUser.getId(),
                 quizId,
                 totalScore,
                 maxPossibleScore,

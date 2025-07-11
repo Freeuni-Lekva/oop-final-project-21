@@ -47,7 +47,6 @@ public class QuizCompletionServlet extends HttpServlet {
         try {
             long quizId = Long.parseLong(quizIdParam);
 
-            // Get rating data for the completion page
             QuizRatingDTO userRating = null;
             double averageRating = 0.0;
             int ratingCount = 0;
@@ -61,7 +60,6 @@ public class QuizCompletionServlet extends HttpServlet {
                 e.printStackTrace();
             }
 
-            // Set attributes
             request.setAttribute("quizId", quizId);
             request.setAttribute("score", scoreParam);
             request.setAttribute("maxScore", maxScoreParam);
@@ -69,7 +67,6 @@ public class QuizCompletionServlet extends HttpServlet {
             request.setAttribute("averageRating", averageRating);
             request.setAttribute("ratingCount", ratingCount);
 
-            // Forward to a simple completion page
             request.getRequestDispatcher("/quiz-completion.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
