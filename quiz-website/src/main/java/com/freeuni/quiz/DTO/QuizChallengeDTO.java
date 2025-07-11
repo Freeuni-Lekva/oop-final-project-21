@@ -1,6 +1,7 @@
 package com.freeuni.quiz.DTO;
 
 import com.freeuni.quiz.bean.Quiz;
+import com.freeuni.quiz.bean.QuizCompletion;
 import java.sql.Timestamp;
 
 public class QuizChallengeDTO {
@@ -12,6 +13,8 @@ public class QuizChallengeDTO {
     private Timestamp createdAt;
     private String status;
     private String quizUrl;
+    private QuizCompletion challengerScore;
+    private QuizCompletion challengedScore;
 
     public QuizChallengeDTO() {}
 
@@ -24,17 +27,15 @@ public class QuizChallengeDTO {
         this.message = message;
         this.createdAt = createdAt;
         this.status = status;
-        this.quizUrl = "/quiz?id=" + quiz.getId();
+        this.quizUrl = "/quiz-view?quizId=" + quiz.getId();
     }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
     public UserDTO getChallenger() { return challenger; }
-    public void setChallenger(UserDTO challenger) { this.challenger = challenger; }
 
     public UserDTO getChallenged() { return challenged; }
-    public void setChallenged(UserDTO challenged) { this.challenged = challenged; }
 
     public Quiz getQuiz() { return quiz; }
     public void setQuiz(Quiz quiz) { this.quiz = quiz; }
@@ -49,5 +50,10 @@ public class QuizChallengeDTO {
     public void setStatus(String status) { this.status = status; }
 
     public String getQuizUrl() { return quizUrl; }
-    public void setQuizUrl(String quizUrl) { this.quizUrl = quizUrl; }
+
+    public QuizCompletion getChallengerScore() { return challengerScore; }
+    public void setChallengerScore(QuizCompletion challengerScore) { this.challengerScore = challengerScore; }
+
+    public QuizCompletion getChallengedScore() { return challengedScore; }
+    public void setChallengedScore(QuizCompletion challengedScore) { this.challengedScore = challengedScore; }
 }
