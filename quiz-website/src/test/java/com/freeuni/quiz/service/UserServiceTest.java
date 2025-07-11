@@ -30,14 +30,15 @@ public class UserServiceTest {
             stmt.execute("DROP ALL OBJECTS");
             String createTableSQL = "CREATE TABLE users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
-                    "username VARCHAR(255) UNIQUE NOT NULL," +
                     "hashPassword VARCHAR(255) NOT NULL," +
                     "salt VARCHAR(255) NOT NULL," +
                     "firstName VARCHAR(255) NOT NULL," +
                     "lastName VARCHAR(255) NOT NULL," +
+                    "userName VARCHAR(255) UNIQUE NOT NULL," +
                     "email VARCHAR(255) NOT NULL," +
-                    "imageUrl VARCHAR(255)," +
-                    "bio TEXT" +
+                    "imageURL VARCHAR(255)," +
+                    "bio TEXT," +
+                    "isAdmin BOOLEAN NOT NULL DEFAULT FALSE" +
                     ");";
 
             stmt.execute(createTableSQL);

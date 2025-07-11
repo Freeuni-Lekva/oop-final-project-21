@@ -40,7 +40,8 @@ public class FriendshipServiceTest {
                     "userName VARCHAR(255) UNIQUE," +
                     "email VARCHAR(255) UNIQUE," +
                     "imageURL VARCHAR(255)," +
-                    "bio TEXT)");
+                    "bio TEXT," +
+                    "isAdmin BOOLEAN NOT NULL DEFAULT FALSE)");
 
             stmt.execute("CREATE TABLE friendships (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
