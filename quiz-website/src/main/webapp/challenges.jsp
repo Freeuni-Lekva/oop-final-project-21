@@ -158,7 +158,7 @@
     <a href="#">🏆 Achievements</a>
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
     <a href="${pageContext.request.contextPath}/challenges" style="background-color: rgba(255, 255, 255, 0.2);">🎯 Challenges</a>
-    <a href="#">📊 History</a>
+    <a href="${pageContext.request.contextPath}/history">📊 History</a>
 </div>
 
 <div class="content">

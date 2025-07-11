@@ -11,6 +11,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="java.math.BigDecimal" %>
 <%
     UserDTO user = (session != null) ? (UserDTO) session.getAttribute("user") : null;
     if (user == null) {
@@ -36,10 +37,10 @@
     List<FriendshipRequest> recentFriendRequests = (List<FriendshipRequest>) request.getAttribute("recentFriendRequests");
     LinkedHashMap<Message, UserDTO> recentConversations = (LinkedHashMap<Message, UserDTO>) request.getAttribute("recentConversations");
     Map<Integer, UserDTO> friendRequestSenders = (Map<Integer, UserDTO>) request.getAttribute("friendRequestSenders");
-    
+
     // Announcement data
     List<AnnouncementDTO> recentAnnouncements = (List<AnnouncementDTO>) request.getAttribute("recentAnnouncements");
-    
+
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
     
     String errorMessage = (String) request.getAttribute("errorMessage");
@@ -225,10 +226,10 @@
     <a href="${pageContext.request.contextPath}/achievements">🏆 Achievements</a>
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
     <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
+    <a href="${pageContext.request.contextPath}/history">📊 History</a>
     <% if (isAdmin) { %>
     <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
     <% } %>
-    <a href="#">📊 History</a>
 </div>
 
 <div class="content">
@@ -270,9 +271,9 @@
     </div>
 
     <% if (errorMessage != null) { %>
-        <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
-            <strong>Error:</strong> <%= errorMessage %>
-        </div>
+    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+        <strong>Error:</strong> <%= errorMessage %>
+    </div>
     <% } %>
 
     <!-- Announcements Section -->
@@ -290,7 +291,7 @@
                             <h4 style="margin: 0 0 5px 0; color: #333;"><%= announcement.getTitle() %></h4>
                             <p style="margin: 0 0 5px 0; color: #666;"><%= announcement.getContent() %></p>
                             <small style="color: #888;">
-                                By <%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Admin" %> 
+                                By <%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Admin" %>
                                 - <%= announcement.getCreatedAt() != null ? announcement.getCreatedAt().toLocalDateTime().format(formatter) : "" %>
                             </small>
                         </div>
@@ -312,18 +313,18 @@
             <h2>🏆 Recent Challenges</h2>
             <div class="box-content">
                 <% if (recentChallenges != null && !recentChallenges.isEmpty()) { %>
-                    <% for (QuizChallengeDTO challenge : recentChallenges) { %>
-                        <p>
-                            <strong><%= challenge.getChallenger().getUserName() %></strong> challenged you<br>
-                            <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= challenge.getQuiz().getId() %>"
-                               style="color: #f59e0b; text-decoration: none; font-weight: bold;">
-                                🏆 <%= challenge.getQuiz().getTestTitle() %>
-                            </a>
-                            <br><small style="color: #666;">Status: <%= challenge.getStatus() %> - <%= challenge.getCreatedAt().toLocalDateTime().format(formatter) %></small>
-                        </p>
-                    <% } %>
+                <% for (QuizChallengeDTO challenge : recentChallenges) { %>
+                <p>
+                    <strong><%= challenge.getChallenger().getUserName() %></strong> challenged you<br>
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= challenge.getQuiz().getId() %>"
+                       style="color: #f59e0b; text-decoration: none; font-weight: bold;">
+                        🏆 <%= challenge.getQuiz().getTestTitle() %>
+                    </a>
+                    <br><small style="color: #666;">Status: <%= challenge.getStatus() %> - <%= challenge.getCreatedAt().toLocalDateTime().format(formatter) %></small>
+                </p>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">No recent challenges</p>
+                <p style="color: #666; font-style: italic;">No recent challenges</p>
                 <% } %>
             </div>
         </div>
@@ -331,17 +332,17 @@
             <h2>👋 Friend Requests</h2>
             <div class="box-content">
                 <% if (recentFriendRequests != null && !recentFriendRequests.isEmpty()) { %>
-                    <% for (FriendshipRequest friendRequest : recentFriendRequests) { 
-                        UserDTO sender = friendRequestSenders.get(friendRequest.getRequestSenderId());
-                        if (sender != null) { %>
-                            <p>
-                                <strong><%= sender.getUserName() %></strong> wants to be friends<br>
-                                <small style="color: #666;"><%= friendRequest.getTimestamp().toLocalDateTime().format(formatter) %></small>
-                            </p>
-                        <% } %>
-                    <% } %>
+                <% for (FriendshipRequest friendRequest : recentFriendRequests) {
+                    UserDTO sender = friendRequestSenders.get(friendRequest.getRequestSenderId());
+                    if (sender != null) { %>
+                <p>
+                    <strong><%= sender.getUserName() %></strong> wants to be friends<br>
+                    <small style="color: #666;"><%= friendRequest.getTimestamp().toLocalDateTime().format(formatter) %></small>
+                </p>
+                <% } %>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">No recent friend requests</p>
+                <p style="color: #666; font-style: italic;">No recent friend requests</p>
                 <% } %>
             </div>
         </div>
@@ -349,19 +350,19 @@
             <h2>💬 Recent Messages</h2>
             <div class="box-content">
                 <% if (recentConversations != null && !recentConversations.isEmpty()) { %>
-                    <% for (Map.Entry<Message, UserDTO> entry : recentConversations.entrySet()) { 
-                        Message message = entry.getKey();
-                        UserDTO otherUser = entry.getValue();
-                        if (otherUser != null) { %>
-                            <p>
-                                <strong><%= otherUser.getUserName() %></strong><br>
-                                <span style="color: #888; font-style: italic;"><%= message.getContent().length() > 30 ? message.getContent().substring(0, 30) + "..." : message.getContent() %></span>
-                                <br><small style="color: #666;"><%= message.getSentAt().format(formatter) %></small>
-                            </p>
-                        <% } %>
-                    <% } %>
+                <% for (Map.Entry<Message, UserDTO> entry : recentConversations.entrySet()) {
+                    Message message = entry.getKey();
+                    UserDTO otherUser = entry.getValue();
+                    if (otherUser != null) { %>
+                <p>
+                    <strong><%= otherUser.getUserName() %></strong><br>
+                    <span style="color: #888; font-style: italic;"><%= message.getContent().length() > 30 ? message.getContent().substring(0, 30) + "..." : message.getContent() %></span>
+                    <br><small style="color: #666;"><%= message.getSentAt().format(formatter) %></small>
+                </p>
+                <% } %>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">No recent messages</p>
+                <p style="color: #666; font-style: italic;">No recent messages</p>
                 <% } %>
                 <div style="margin-top: 15px;">
                     <a href="${pageContext.request.contextPath}/inbox"
@@ -375,15 +376,15 @@
 
     <!-- Quick Social Actions -->
     <div style="text-align: center; margin-top: 30px; padding: 20px;">
-        <a href="${pageContext.request.contextPath}/challenges" 
+        <a href="${pageContext.request.contextPath}/challenges"
            style="background: linear-gradient(45deg, #f59e0b, #d97706); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 0 10px; display: inline-block;">
             🏆 View All Challenges
         </a>
-        <a href="${pageContext.request.contextPath}/friendshipRequests" 
+        <a href="${pageContext.request.contextPath}/friendshipRequests"
            style="background: linear-gradient(45deg, #10b981, #059669); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 0 10px; display: inline-block;">
             👋 Manage Friend Requests
         </a>
-        <a href="${pageContext.request.contextPath}/inbox" 
+        <a href="${pageContext.request.contextPath}/inbox"
            style="background: linear-gradient(45deg, #3b82f6, #2563eb); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 0 10px; display: inline-block;">
             💬 View All Messages
         </a>
@@ -399,17 +400,17 @@
             <h2>🔥 Popular Quizzes</h2>
             <div class="box-content">
                 <% if (popularQuizzes != null && !popularQuizzes.isEmpty()) { %>
-                    <% for (PopularQuizDTO popularQuiz : popularQuizzes) { %>
-                        <p>
-                            <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= popularQuiz.getQuiz().getId() %>"
-                               style="color: #8a2be2; text-decoration: none; font-weight: bold;">
-                                📊 <%= popularQuiz.getQuiz().getTestTitle() %>
-                            </a>
-                            <br><small style="color: #666;"><%= popularQuiz.getCompletionCount() %> completions</small>
-                        </p>
-                    <% } %>
+                <% for (PopularQuizDTO popularQuiz : popularQuizzes) { %>
+                <p>
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= popularQuiz.getQuiz().getId() %>"
+                       style="color: #8a2be2; text-decoration: none; font-weight: bold;">
+                        📊 <%= popularQuiz.getQuiz().getTestTitle() %>
+                    </a>
+                    <br><small style="color: #666;"><%= popularQuiz.getCompletionCount() %> completions</small>
+                </p>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">No popular quizzes available</p>
+                <p style="color: #666; font-style: italic;">No popular quizzes available</p>
                 <% } %>
                 <div style="margin-top: 15px;">
                     <a href="${pageContext.request.contextPath}/quiz-browser"
@@ -423,17 +424,17 @@
             <h2>🆕 Recently Created Quizzes</h2>
             <div class="box-content">
                 <% if (recentlyCreatedQuizzes != null && !recentlyCreatedQuizzes.isEmpty()) { %>
-                    <% for (Quiz quiz : recentlyCreatedQuizzes) { %>
-                        <p>
-                            <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
-                               style="color: #28a745; text-decoration: none; font-weight: bold;">
-                                📝 <%= quiz.getTestTitle() %>
-                            </a>
-                            <br><small style="color: #666;"><%= quiz.getCreatedAt().format(formatter) %></small>
-                        </p>
-                    <% } %>
+                <% for (Quiz quiz : recentlyCreatedQuizzes) { %>
+                <p>
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
+                       style="color: #28a745; text-decoration: none; font-weight: bold;">
+                        📝 <%= quiz.getTestTitle() %>
+                    </a>
+                    <br><small style="color: #666;"><%= quiz.getCreatedAt().format(formatter) %></small>
+                </p>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">No recently created quizzes</p>
+                <p style="color: #666; font-style: italic;">No recently created quizzes</p>
                 <% } %>
             </div>
         </div>
@@ -441,46 +442,52 @@
             <h2>📝 Your Recent Quiz Activities</h2>
             <div class="box-content">
                 <% if (userRecentCompletions != null && !userRecentCompletions.isEmpty()) { %>
-                    <% for (QuizCompletion completion : userRecentCompletions) { 
-                        Quiz quiz = quizMap.get(completion.getTestId());
-                        if (quiz != null) { %>
-                            <p>
-                                <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
-                                   style="color: #007bff; text-decoration: none; font-weight: bold;">
-                                    🎯 <%= quiz.getTestTitle() %>
-                                </a>
-                                <br><small style="color: #666;">Score: <%= String.format("%.1f", completion.getCompletionPercentage()) %>% - <%= completion.getFinishedAt().format(formatter) %></small>
-                            </p>
-                        <% } %>
-                    <% } %>
-                <% } else { %>
-                    <p style="color: #666; font-style: italic;">No recent quiz activities</p>
+                <% for (QuizCompletion completion : userRecentCompletions) {
+                    Quiz quiz = quizMap.get(completion.getTestId());
+                    if (quiz != null) { %>
+                <p>
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
+                       style="color: #007bff; text-decoration: none; font-weight: bold;">
+                        🎯 <%= quiz.getTestTitle() %>
+                    </a>
+                    <br><small style="color: #666;">Score: <%= String.format("%.1f", completion.getCompletionPercentage().doubleValue()) %>% - <%= completion.getFinishedAt().format(formatter) %></small>
+                </p>
                 <% } %>
+                <% } %>
+                <% } else { %>
+                <p style="color: #666; font-style: italic;">No recent quiz activities</p>
+                <% } %>
+                <div style="margin-top: 15px;">
+                    <a href="${pageContext.request.contextPath}/history"
+                       style="color: #007bff; text-decoration: none; font-weight: bold;">
+                        View Full History →
+                    </a>
+                </div>
             </div>
         </div>
         <div class="box">
             <h2>🏗️ Your Recent Creations</h2>
             <div class="box-content">
                 <% if (userRecentCreatedQuizzes != null && !userRecentCreatedQuizzes.isEmpty()) { %>
-                    <% for (Quiz quiz : userRecentCreatedQuizzes) { %>
-                        <p>
-                            <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
-                               style="color: #6a5acd; text-decoration: none; font-weight: bold;">
-                                🎨 <%= quiz.getTestTitle() %>
-                            </a>
-                            <br><small style="color: #666;"><%= quiz.getCreatedAt().format(formatter) %></small>
-                        </p>
-                    <% } %>
+                <% for (Quiz quiz : userRecentCreatedQuizzes) { %>
+                <p>
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
+                       style="color: #6a5acd; text-decoration: none; font-weight: bold;">
+                        🎨 <%= quiz.getTestTitle() %>
+                    </a>
+                    <br><small style="color: #666;"><%= quiz.getCreatedAt().format(formatter) %></small>
+                </p>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">You haven't created any quizzes yet</p>
-                    <div style="margin-top: 15px;">
-                        <a href="${pageContext.request.contextPath}/quiz-creator"
-                           style="background: linear-gradient(45deg, #28a745, #20c997); color: white;
+                <p style="color: #666; font-style: italic;">You haven't created any quizzes yet</p>
+                <div style="margin-top: 15px;">
+                    <a href="${pageContext.request.contextPath}/quiz-creator"
+                       style="background: linear-gradient(45deg, #28a745, #20c997); color: white;
                                   padding: 8px 16px; border-radius: 6px; text-decoration: none;
                                   font-weight: bold; display: inline-block; font-size: 14px;">
-                            🚀 Create Your First Quiz
-                        </a>
-                    </div>
+                        🚀 Create Your First Quiz
+                    </a>
+                </div>
                 <% } %>
             </div>
         </div>
@@ -488,52 +495,58 @@
             <h2>👥 Friends' Recent Activities</h2>
             <div class="box-content">
                 <% if (friendsRecentCompletions != null && !friendsRecentCompletions.isEmpty()) { %>
-                    <% for (QuizCompletion completion : friendsRecentCompletions) { 
-                        Quiz quiz = friendsQuizMap.get(completion.getTestId());
-                        UserDTO friend = friendsUserMap.get(completion.getParticipantUserId());
-                        if (quiz != null && friend != null) { %>
-                            <p>
-                                <strong><%= friend.getUserName() %></strong> completed<br>
-                                <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
-                                   style="color: #ff6b6b; text-decoration: none; font-weight: bold;">
-                                    👥 <%= quiz.getTestTitle() %>
-                                </a>
-                                <br><small style="color: #666;">Score: <%= String.format("%.1f", completion.getCompletionPercentage()) %>% - <%= completion.getFinishedAt().format(formatter) %></small>
-                            </p>
-                        <% } %>
-                    <% } %>
+                <% for (QuizCompletion completion : friendsRecentCompletions) {
+                    Quiz quiz = friendsQuizMap.get(completion.getTestId());
+                    UserDTO friend = friendsUserMap.get(completion.getParticipantUserId());
+                    if (quiz != null && friend != null) { %>
+                <p>
+                    <strong><%= friend.getUserName() %></strong> completed<br>
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
+                       style="color: #ff6b6b; text-decoration: none; font-weight: bold;">
+                        👥 <%= quiz.getTestTitle() %>
+                    </a>
+                    <br><small style="color: #666;">Score: <%= String.format("%.1f", completion.getCompletionPercentage().doubleValue()) %>% - <%= completion.getFinishedAt().format(formatter) %></small>
+                </p>
+                <% } %>
+                <% } %>
                 <% } else { %>
-                    <p style="color: #666; font-style: italic;">No friends' activities yet</p>
+                <p style="color: #666; font-style: italic;">No friends' activities yet</p>
                 <% } %>
             </div>
         </div>
         <div class="box">
-            <h2>➕ Quick Actions</h2>
+            <h2>📈 Your Quiz History</h2>
             <div class="box-content">
+                <% if (userRecentCompletions != null && !userRecentCompletions.isEmpty()) { %>
+                <% for (QuizCompletion completion : userRecentCompletions) {
+                    Quiz quiz = quizMap.get(completion.getTestId());
+                    if (quiz != null) { %>
                 <p>
-                    <a href="${pageContext.request.contextPath}/quiz-creator"
-                       style="color: #28a745; text-decoration: none; font-weight: bold;">
-                        📝 Create New Quiz
+                    <a href="${pageContext.request.contextPath}/quiz-view?quizId=<%= quiz.getId() %>"
+                       style="color: #8a2be2; text-decoration: none; font-weight: bold;">
+                        📊 <%= quiz.getTestTitle() %>
                     </a>
+                    <br><small style="color: #666;">Score: <%= String.format("%.1f", completion.getCompletionPercentage().doubleValue()) %>% - <%= completion.getFinishedAt().format(formatter) %></small>
                 </p>
-                <p>
-                    <a href="${pageContext.request.contextPath}/quiz-manager"
-                       style="color: #007bff; text-decoration: none; font-weight: bold;">
-                        📊 My Quiz Dashboard
+                <% } %>
+                <% } %>
+                <div style="margin-top: 15px;">
+                    <a href="${pageContext.request.contextPath}/history"
+                       style="color: #8a2be2; text-decoration: none; font-weight: bold;">
+                        View Full History →
                     </a>
-                </p>
-                <p>
+                </div>
+                <% } else { %>
+                <p style="color: #666; font-style: italic;">No quiz history yet</p>
+                <div style="margin-top: 15px;">
                     <a href="${pageContext.request.contextPath}/quiz-browser"
-                       style="color: #6a5acd; text-decoration: none; font-weight: bold;">
-                        🔍 Browse & Take Quizzes
+                       style="background: linear-gradient(45deg, #8a2be2, #4c1d95); color: white;
+                                  padding: 8px 16px; border-radius: 6px; text-decoration: none;
+                                  font-weight: bold; display: inline-block; font-size: 14px;">
+                        🚀 Take Your First Quiz
                     </a>
-                </p>
-                <p>
-                    <a href="${pageContext.request.contextPath}/challenges"
-                       style="color: #e91e63; text-decoration: none; font-weight: bold;">
-                        🏆 View Challenges
-                    </a>
-                </p>
+                </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -551,7 +564,7 @@
                         <h3 style="margin: 0 0 10px 0; color: #333;"><%= announcement.getTitle() %></h3>
                         <p style="margin: 0 0 10px 0; color: #666; line-height: 1.5;"><%= announcement.getContent() %></p>
                         <small style="color: #888;">
-                            By <%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Admin" %> 
+                            By <%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Admin" %>
                             - <%= announcement.getCreatedAt() != null ? announcement.getCreatedAt().toLocalDateTime().format(formatter) : "" %>
                         </small>
                     </div>
