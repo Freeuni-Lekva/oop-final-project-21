@@ -1,5 +1,6 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.User;
 import com.freeuni.quiz.DAO.UserDAO;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -11,6 +12,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -191,28 +194,55 @@ public class UserDAOTest {
         user3.setEmail("charlie@example.com");
         userDAO.addUser(user3);
 
-        // Partial match on first name
         List<User> result1 = userDAO.findUsers("Ali");
         assertEquals(1, result1.size());
         assertEquals("alice", result1.get(0).getUserName());
 
-        // Partial match on last name
         List<User> result2 = userDAO.findUsers("Build");
         assertEquals(1, result2.size());
         assertEquals("bob123", result2.get(0).getUserName());
 
-        // Match on username
         List<User> result3 = userDAO.findUsers("charlie");
         assertEquals(1, result3.size());
         assertEquals("charlie99", result3.get(0).getUserName());
 
-        // No match
         List<User> result4 = userDAO.findUsers("zzzz");
         assertTrue(result4.isEmpty());
 
-        // Match multiple users
-        List<User> result5 = userDAO.findUsers("a"); // matches alice, charlie
+        List<User> result5 = userDAO.findUsers("a");
         assertEquals(2, result5.size());
+    }
+
+    @Test
+    public void testFindUsersByIds() throws SQLException {
+
+        User user1 = createSampleUser();
+        userDAO.addUser(user1);
+
+        User user2 = createSampleUser();
+        user2.setUserName("bob");
+        user2.setEmail("bob@example.com");
+        userDAO.addUser(user2);
+
+        User user3 = createSampleUser();
+        user3.setUserName("charlie");
+        user3.setEmail("charlie@example.com");
+        userDAO.addUser(user3);
+
+        Set<Integer> idsToFetch = Set.of(user1.getId(), user2.getId());
+
+        Map<Integer, UserDTO> usersMap = userDAO.findUsersByIds(idsToFetch);
+
+        assertEquals(2, usersMap.size());
+        assertTrue(usersMap.containsKey(user1.getId()));
+        assertTrue(usersMap.containsKey(user2.getId()));
+        assertFalse(usersMap.containsKey(user3.getId()));
+
+        assertEquals("alice", usersMap.get(user1.getId()).getUserName());
+        assertEquals("bob", usersMap.get(user2.getId()).getUserName());
+
+        Map<Integer, UserDTO> emptyResult = userDAO.findUsersByIds(Set.of());
+        assertTrue(emptyResult.isEmpty());
     }
 
 }

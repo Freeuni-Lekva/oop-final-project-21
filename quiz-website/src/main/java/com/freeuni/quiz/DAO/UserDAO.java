@@ -1,11 +1,12 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.User;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UserDAO {
     private final DataSource dataSource;
@@ -139,6 +140,40 @@ public class UserDAO {
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
+        }
+    }
+    public Map<Integer, UserDTO> findUsersByIds(Set<Integer> userIds) throws SQLException {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE id IN (");
+        sql.append(userIds.stream().map(id -> "?").collect(Collectors.joining(",")));
+        sql.append(")");
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int index = 1;
+            for (Integer id : userIds) {
+                ps.setInt(index++, id);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            Map<Integer, UserDTO> result = new HashMap<>();
+            while (rs.next()) {
+                UserDTO user = new UserDTO(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("firstName"),
+                        rs.getString("lastName"),
+                        rs.getString("email"),
+                        rs.getString("imageUrl"),
+                        rs.getString("bio")
+                );
+                result.put(user.getId(), user);
+            }
+            return result;
         }
     }
 

@@ -17,9 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    form.innerHTML = action === 'accept'
-                        ? '<span class="status-message success">You are now friends ✓</span>'
-                        : '<span class="status-message neutral">Request declined</span>';
+                    window.location.reload();
+                    // form.innerHTML = action === 'accept'
+                    //     ? '<span class="status-message success">You are now friends ✓</span>'
+                    //     : '<span class="status-message neutral">Request declined</span>';
                 } else {
                     alert('Action failed. Please try again.');
                 }
