@@ -172,6 +172,17 @@ CREATE TABLE user_achievements (
                                    FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE,
                                    UNIQUE (user_id, achievement_id)
 );
+
+CREATE TABLE announcements (
+                              id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                              title VARCHAR(255) NOT NULL,
+                              content TEXT NOT NULL,
+                              author_id INT NOT NULL,
+                              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                              is_active BOOLEAN DEFAULT TRUE,
+                              FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+);
 INSERT INTO achievements (name, description, icon_url, created_at) VALUES
                                                                        ('AMATEUR_AUTHOR', 'Created at least 1 quiz', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
                                                                        ('PROLIFIC_AUTHOR', 'Created at least 5 quizzes', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
