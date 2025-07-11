@@ -80,7 +80,20 @@ public class QuizQuestionHandler {
             return;
         }
         
-        response.sendRedirect("quiz-editor?quizId=" + quizId + "&message=Question deletion feature coming soon");
+        boolean removedFromQuiz = quizService.removeQuestionFromQuiz(quizId, questionId);
+        
+        if (removedFromQuiz) {
+            boolean deletedQuestion = questionService.deleteQuestion(questionId);
+            
+            if (deletedQuestion) {
+                response.sendRedirect("quiz-editor?quizId=" + quizId + "&message=Question deleted successfully");
+            } else {
+                response.sendRedirect("quiz-editor?quizId=" + quizId + "&message=Question removed from quiz");
+            }
+        } else {
+            request.setAttribute("errorMessage", "Failed to remove question from quiz");
+            redirectToEditor(response, quizId);
+        }
     }
 
     private Question createQuestionFromForm(HttpServletRequest request, UserDTO currentUser) {

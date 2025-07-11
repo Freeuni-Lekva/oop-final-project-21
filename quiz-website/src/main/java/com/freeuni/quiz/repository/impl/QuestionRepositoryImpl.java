@@ -22,7 +22,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
     @Override
     public Long saveQuestion(Question question) {
         String sql = "INSERT INTO test_questions (author_user_id, category_id, question_title, question_type, " +
-                    "question_data, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+                    "question_data, created_at, points) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -39,6 +39,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             statement.setBlob(5, new ByteArrayInputStream(bos.toByteArray()));
             
             statement.setTimestamp(6, Timestamp.valueOf(question.getCreatedAt()));
+            statement.setDouble(7, question.getPoints());
             
             statement.executeUpdate();
             
@@ -143,7 +144,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 
     @Override
     public boolean updateQuestion(Question question) {
-        String sql = "UPDATE test_questions SET question_title = ?, question_type = ?, question_data = ? WHERE id = ?";
+        String sql = "UPDATE test_questions SET question_title = ?, question_type = ?, question_data = ?, points = ? WHERE id = ?";
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -157,7 +158,8 @@ public class QuestionRepositoryImpl implements QuestionRepository {
             out.flush();
             statement.setBlob(3, new ByteArrayInputStream(bos.toByteArray()));
             
-            statement.setLong(4, question.getId());
+            statement.setDouble(4, question.getPoints());
+            statement.setLong(5, question.getId());
             
             return statement.executeUpdate() > 0;
         } catch (Exception e) {
@@ -200,6 +202,7 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         question.setQuestionTitle(resultSet.getString("question_title"));
         question.setQuestionType(QuestionType.valueOf(resultSet.getString("question_type")));
         question.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+        question.setPoints(resultSet.getDouble("points"));
         
         try {
             Blob blob = resultSet.getBlob("question_data");
