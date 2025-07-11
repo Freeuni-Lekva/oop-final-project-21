@@ -9,7 +9,7 @@
         response.sendRedirect("login.jsp");
         return;
     }
-    
+
     Quiz quiz = (Quiz) request.getAttribute("quiz");
     Integer totalQuestions = (Integer) request.getAttribute("totalQuestions");
     Boolean hasCompleted = (Boolean) request.getAttribute("hasCompleted");
@@ -66,113 +66,144 @@
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <% if (user.getImageURL() != null && !user.getImageURL().isEmpty()) { %>
-        <img src="<%= user.getImageURL() %>" alt="Profile Image">
-        <% } else { %>
-        <img src="https://via.placeholder.com/100" alt="No Image">
-        <% } %>
-        <div class="username"><%= user.getUserName() %></div>
-        
-        <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
-        <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
-        <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
-        <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
-        <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
-        <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
-        <a href="#">🏆 Achievements</a>
-        <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
-        <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
-        <a href="#">📊 History</a>
-    </div>
+<div class="sidebar">
+    <% if (user.getImageURL() != null && !user.getImageURL().isEmpty()) { %>
+    <img src="<%= user.getImageURL() %>" alt="Profile Image">
+    <% } else { %>
+    <img src="https://via.placeholder.com/100" alt="No Image">
+    <% } %>
+    <div class="username"><%= user.getUserName() %></div>
 
-    <div class="main-content">
-        <div class="quiz-container">
-            <% if (quiz == null) { %>
-                <div class="quiz-card" style="text-align: center; padding: 60px;">
-                    <p style="color: #b19cd9; font-size: 18px;">Quiz not found.</p>
-                    <a href="quiz-browser" class="quiz-btn quiz-btn-primary" style="margin-top: 20px;">
-                        Browse Quizzes
-                    </a>
-                </div>
-            <% } else { %>
-                <div class="quiz-grid">
-                    <!-- Quiz Info -->
-                    <div class="quiz-card" style="grid-column: span 2;">
-                        <h2 style="color: #ffffff; margin-bottom: 15px;"><%= quiz.getTestTitle() %></h2>
-                        <p style="color: #d1d8ff; margin-bottom: 20px;"><%= quiz.getTestDescription() %></p>
-                        
-                        <div class="quiz-stats" style="margin-bottom: 20px;">
-                            <span>⏱️ <%= quiz.getTimeLimitMinutes() == null || quiz.getTimeLimitMinutes() == 0 ? "No time limit" : quiz.getTimeLimitMinutes() + " minutes" %></span>
-                            <span>📝 <%= totalQuestions != null ? totalQuestions : 0 %> questions</span>
-                        </div>
-                        
-                        <div style="color: #999; font-size: 14px; margin-bottom: 20px;">
-                            <% if (quiz.getCreatedAt() != null) { %>
-                                Created on <%= quiz.getCreatedAt().format(dateFormat) %>
-                            <% } %>
-                        </div>
-                        
-                        <form method="post" action="quiz-session">
-                            <input type="hidden" name="quizId" value="<%= quiz.getId() %>">
-                            <button type="submit" class="quiz-btn quiz-btn-primary" style="width: 100%; font-size: 18px; padding: 15px;">
-                                Start Quiz
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <!-- Quiz Status -->
-                    <div class="quiz-card">
-                        <% if (hasCompleted != null && hasCompleted && bestCompletion != null) { %>
-                            <h3 style="color: #ffffff; margin-bottom: 15px;">⚡ Your Fastest Time</h3>
-                            <div style="font-size: 36px; color: #b19cd9; margin-bottom: 10px;">
-                                <%= Math.round(bestCompletion.getFinalScore() * 10) / 10.0 %> / <%= Math.round(bestCompletion.getTotalPossible() * 10) / 10.0 %>
-                            </div>
-                            <div style="color: #999; font-size: 14px;">
-                                <%= Math.round(bestCompletion.getCompletionPercentage().doubleValue()) %>% Score
-                            </div>
-                            <div style="color: #999; font-size: 14px; margin-top: 5px;">
-                                <% if (bestCompletion.getFinishedAt() != null) { %>
-                                    Completed on <%= bestCompletion.getFinishedAt().format(dateFormat) %>
-                                <% } %>
-                            </div>
-                            <div style="color: #999; font-size: 14px; margin-top: 5px;">
-                                <% 
-                                    Integer timeSeconds = bestCompletion.getTotalTimeMinutes(); // Actually stores seconds now
-                                    if (timeSeconds != null && timeSeconds > 0) {
-                                        if (timeSeconds < 60) {
-                                %>
-                                            Time taken: <%= timeSeconds %> seconds
-                                <%      } else {
-                                            int minutes = timeSeconds / 60;
-                                            int remainingSeconds = timeSeconds % 60;
-                                %>
-                                            Time taken: <%= minutes %>m <%= remainingSeconds %>s
-                                <%      }
-                                    } else { %>
-                                        Time taken: 0 seconds
-                                <%  } %>
-                            </div>
-                        <% } else { %>
-                            <h3 style="color: #ffffff; margin-bottom: 15px;">🎯 Ready to Start?</h3>
-                            <p style="color: #d1d8ff;">You haven't taken this quiz yet. Click "Start Quiz" to begin!</p>
-                        <% } %>
-                    </div>
-                    
-                    <!-- Quiz Info -->
-                    <div class="quiz-card">
-                        <h3 style="color: #ffffff; margin-bottom: 15px;">📋 Quiz Details</h3>
-                        <div style="color: #d1d8ff;">
-                            <p><strong>Questions:</strong> <%= totalQuestions != null ? totalQuestions : 0 %></p>
-                            <p><strong>Time Limit:</strong> <%= quiz.getTimeLimitMinutes() == null || quiz.getTimeLimitMinutes() == 0 ? "No time limit" : quiz.getTimeLimitMinutes() + " minutes" %></p>
-                            <% if (quiz.getCreatedAt() != null) { %>
-                                <p><strong>Created:</strong> <%= quiz.getCreatedAt().format(dateFormat) %></p>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            <% } %>
+    <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+    <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
+    <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
+    <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
+    <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
+    <a href="#">🏆 Achievements</a>
+    <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+    <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
+    <a href="#">📊 History</a>
+</div>
+
+<div class="main-content">
+    <div class="quiz-container">
+        <% if (quiz == null) { %>
+        <div class="quiz-card" style="text-align: center; padding: 60px;">
+            <p style="color: #b19cd9; font-size: 18px;">Quiz not found.</p>
+            <a href="quiz-browser" class="quiz-btn quiz-btn-primary" style="margin-top: 20px;">
+                Browse Quizzes
+            </a>
         </div>
+        <% } else { %>
+        <div class="quiz-grid">
+            <!-- Quiz Info -->
+            <div class="quiz-card" style="grid-column: span 2;">
+                <h2 style="color: #ffffff; margin-bottom: 15px;"><%= quiz.getTestTitle() %></h2>
+                <p style="color: #d1d8ff; margin-bottom: 20px;"><%= quiz.getTestDescription() %></p>
+
+                <div class="quiz-stats" style="margin-bottom: 20px;">
+                    <span>⏱️ <%= quiz.getTimeLimitMinutes() == null || quiz.getTimeLimitMinutes() == 0 ? "No time limit" : quiz.getTimeLimitMinutes() + " minutes" %></span>
+                    <span>📝 <%= totalQuestions != null ? totalQuestions : 0 %> questions</span>
+                </div>
+
+                <div style="color: #999; font-size: 14px; margin-bottom: 20px;">
+                    <% if (quiz.getCreatedAt() != null) { %>
+                    Created on <%= quiz.getCreatedAt().format(dateFormat) %>
+                    <% } %>
+                </div>
+
+                <form method="post" action="quiz-session">
+                    <input type="hidden" name="quizId" value="<%= quiz.getId() %>">
+                    <button type="submit" class="quiz-btn quiz-btn-primary" style="width: 100%; font-size: 18px; padding: 15px;">
+                        Start Quiz
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quiz Status -->
+            <div class="quiz-card">
+                <% if (hasCompleted != null && hasCompleted && bestCompletion != null) { %>
+                <h3 style="color: #ffffff; margin-bottom: 15px;">⚡ Your Fastest Time</h3>
+                <div style="font-size: 36px; color: #b19cd9; margin-bottom: 10px;">
+                    <%= Math.round(bestCompletion.getFinalScore() * 10) / 10.0 %> / <%= Math.round(bestCompletion.getTotalPossible() * 10) / 10.0 %>
+                </div>
+                <div style="color: #999; font-size: 14px;">
+                    <%= Math.round(bestCompletion.getCompletionPercentage().doubleValue()) %>% Score
+                </div>
+                <div style="color: #999; font-size: 14px; margin-top: 5px;">
+                    <% if (bestCompletion.getFinishedAt() != null) { %>
+                    Completed on <%= bestCompletion.getFinishedAt().format(dateFormat) %>
+                    <% } %>
+                </div>
+                <div style="color: #999; font-size: 14px; margin-top: 5px;">
+                    <%
+                        Integer timeSeconds = bestCompletion.getTotalTimeMinutes(); // Actually stores seconds now
+                        if (timeSeconds != null && timeSeconds > 0) {
+                            if (timeSeconds < 60) {
+                    %>
+                    Time taken: <%= timeSeconds %> seconds
+                    <%      } else {
+                        int minutes = timeSeconds / 60;
+                        int remainingSeconds = timeSeconds % 60;
+                    %>
+                    Time taken: <%= minutes %>m <%= remainingSeconds %>s
+                    <%      }
+                    } else { %>
+                    Time taken: 0 seconds
+                    <%  } %>
+                </div>
+                <% } else { %>
+                <h3 style="color: #ffffff; margin-bottom: 15px;">🎯 Ready to Start?</h3>
+                <p style="color: #d1d8ff;">You haven't taken this quiz yet. Click "Start Quiz" to begin!</p>
+                <% } %>
+            </div>
+
+            <!-- Quiz Info -->
+            <div class="quiz-card">
+                <h3 style="color: #ffffff; margin-bottom: 15px;">📋 Quiz Details</h3>
+                <div style="color: #d1d8ff;">
+                    <p><strong>Questions:</strong> <%= totalQuestions != null ? totalQuestions : 0 %></p>
+                    <p><strong>Time Limit:</strong> <%= quiz.getTimeLimitMinutes() == null || quiz.getTimeLimitMinutes() == 0 ? "No time limit" : quiz.getTimeLimitMinutes() + " minutes" %></p>
+                    <% if (quiz.getCreatedAt() != null) { %>
+                    <p><strong>Created:</strong> <%= quiz.getCreatedAt().format(dateFormat) %></p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating & Review Section - ᲓᲐᲐᲛᲐᲢᲔ ЭТО НУЖНОМ МЕСТЕ -->
+        <% if (hasCompleted != null && hasCompleted) { %>
+        <div class="quiz-card" style="text-align: center; padding: 25px; margin-top: 20px;">
+            <h3 style="color: #ffffff; margin-bottom: 20px;">📝 Share Your Experience</h3>
+            <p style="color: #d1d8ff; margin-bottom: 20px;">
+                Rate this quiz and share your thoughts with other users
+            </p>
+
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <a href="rate-quiz?quizId=<%= quiz.getId() %>"
+                   style="background: linear-gradient(45deg, #ffd700, #ffa500);
+                                      color: #000; padding: 12px 20px; border-radius: 8px;
+                                      text-decoration: none; font-weight: bold; display: inline-block;">
+                    ⭐ Rate Quiz
+                </a>
+
+                <a href="quiz-reviews?quizId=<%= quiz.getId() %>"
+                   style="background: linear-gradient(45deg, #6a5acd, #8a2be2);
+                                      color: white; padding: 12px 20px; border-radius: 8px;
+                                      text-decoration: none; font-weight: bold; display: inline-block;">
+                    💬 Write Review
+                </a>
+            </div>
+        </div>
+        <% } else { %>
+        <div class="quiz-card" style="text-align: center; padding: 20px; margin-top: 20px;">
+            <h3 style="color: #b19cd9; margin-bottom: 10px;">💡 Complete the quiz first!</h3>
+            <p style="color: #d1d8ff;">Take the quiz to rate and review it.</p>
+        </div>
+        <% } %>
+        <% } %>
     </div>
+</div>
 </body>
-</html> 
+</html>
