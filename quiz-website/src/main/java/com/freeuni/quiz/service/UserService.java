@@ -7,8 +7,10 @@ import com.freeuni.quiz.converter.UserConverter;
 import com.freeuni.quiz.util.PasswordUtil;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.net.HttpURLConnection;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -41,12 +43,38 @@ public class UserService {
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEmail(email);
-        user.setImageURL(imageURL != null && !imageURL.trim().isEmpty() ? imageURL : null);
+        user.setImageURL(validateImageURL(imageURL));
         user.setBio(bio);
         user.setHashPassword(hashedPassword);
         user.setSalt(encodedSalt);
 
         return userDAO.addUser(user);
+    }
+
+    private String validateImageURL(String imageURL) {
+        String placeholder = "https://t3.ftcdn.net/jpg/05/16/27/58/360_F_516275801_f3Fsp17x6HQK0xQgDQEELoTuERO4SsWV.jpg";
+
+        if (imageURL == null || imageURL.trim().isEmpty()) {
+            return placeholder;
+        }
+
+        try {
+            URI uri = URI.create(imageURL);
+            URL url = uri.toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+
+            int responseCode = connection.getResponseCode();
+            String contentType = connection.getContentType();
+
+            if (responseCode == 200 && contentType != null && contentType.startsWith("image/")) {
+                return imageURL;
+            }
+        } catch (IOException e) {
+        }
+        return placeholder;
     }
 
     public UserDTO authenticateUser(String username, String password) throws Exception {
