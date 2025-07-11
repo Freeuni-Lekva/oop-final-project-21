@@ -178,3 +178,14 @@ INSERT INTO achievements (name, description, icon_url, created_at) VALUES
                                                                        ('PRODIGIOUS_AUTHOR', 'Created at least 10 quizzes', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
                                                                        ('QUIZ_MACHINE', 'Taken at least 10 quizzes', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW()),
                                                                        ('QUIZ_MASTER', 'Mastered a quiz with high score', 'https://ih1.redbubble.net/image.779432435.1383/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u1.jpg', NOW());
+INSERT INTO quiz_categories (category_name, description, is_active) VALUES
+                                                                        ('Science', 'Questions related to physics, chemistry, biology, and general science.', TRUE),
+                                                                        ('History', 'Covers world history, events, and historical figures.', TRUE),
+                                                                        ('Geography', 'Includes countries, capitals, landmarks, and maps.', TRUE),
+                                                                        ('Mathematics', 'Covers arithmetic, algebra, geometry, and other branches.', TRUE),
+                                                                        ('Literature', 'Focuses on authors, books, literary devices, and genres.', TRUE),
+                                                                        ('Technology', 'Questions about modern tech, computing, and innovations.', TRUE),
+                                                                        ('Sports', 'Covers rules, history, and facts about various sports.', TRUE),
+                                                                        ('Movies', 'Film industry, directors, actors, and movie trivia.', TRUE),
+                                                                        ('Music', 'Genres, artists, history of music, and instruments.', TRUE),
+                                                                        ('Art', 'Painting, sculpture, art history, and famous artists.', TRUE);

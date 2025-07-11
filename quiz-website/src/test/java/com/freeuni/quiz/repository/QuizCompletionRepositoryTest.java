@@ -12,8 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -49,7 +48,6 @@ public class QuizCompletionRepositoryTest {
     public void setUp() throws SQLException {
         completionRepository = new QuizCompletionRepositoryImpl(basicDataSource);
 
-        // Clear completions table before each test
         try (Connection connection = basicDataSource.getConnection();
              Statement statement = connection.createStatement()) {
             statement.execute("DELETE FROM quiz_completions");
@@ -70,159 +68,174 @@ public class QuizCompletionRepositoryTest {
     }
 
     @Test
-    public void testSaveAndFindById() {
-        QuizCompletion completion = createSampleCompletion(100L, 200L, 8.5, 10.0);
-        
-        Long savedId = completionRepository.saveCompletion(completion);
-        assertNotNull(savedId);
-        assertTrue(savedId > 0);
+    public void testFindFastestTime() {
+        QuizCompletion slow = createSampleCompletion(1L, 1L, 7.0, 10.0);
+        slow.setTotalTimeMinutes(30);
+        completionRepository.saveCompletion(slow);
 
-        Optional<QuizCompletion> retrieved = completionRepository.findById(savedId);
-        assertTrue(retrieved.isPresent());
-        assertEquals(completion.getParticipantUserId(), retrieved.get().getParticipantUserId());
-        assertEquals(completion.getTestId(), retrieved.get().getTestId());
-        assertEquals(completion.getFinalScore(), retrieved.get().getFinalScore(), 0.01);
+        QuizCompletion fast = createSampleCompletion(1L, 1L, 9.0, 10.0);
+        fast.setTotalTimeMinutes(15);
+        completionRepository.saveCompletion(fast);
+
+        Optional<QuizCompletion> result = completionRepository.findFastestTime(1L, 1L);
+        assertTrue(result.isPresent());
+        assertEquals(15, result.get().getTotalTimeMinutes().intValue());
     }
 
     @Test
-    public void testFindUserCompletionForQuiz_ExistingCompletion() {
-        // Create and save a completion
-        QuizCompletion completion = createSampleCompletion(100L, 200L, 7.5, 10.0);
-        completionRepository.saveCompletion(completion);
+    public void testGetAverageScoreByQuiz() {
+        completionRepository.saveCompletion(createSampleCompletion(1L, 1L, 8.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(2L, 1L, 6.0, 10.0));
 
-        // Test finding the completion
-        Optional<QuizCompletion> found = completionRepository.findUserCompletionForQuiz(100L, 200L);
-        
-        assertTrue(found.isPresent());
-        assertEquals(Long.valueOf(100), found.get().getParticipantUserId());
-        assertEquals(Long.valueOf(200), found.get().getTestId());
-        assertEquals(7.5, found.get().getFinalScore(), 0.01);
-        assertEquals(10.0, found.get().getTotalPossible(), 0.01);
-        assertEquals(75.0, found.get().getCompletionPercentage().doubleValue(), 0.01);
+        Double avg = completionRepository.getAverageScoreByQuiz(1L);
+        assertNotNull(avg);
+        assertEquals(70.0, avg, 0.01);
     }
 
     @Test
-    public void testFindUserCompletionForQuiz_NonExistingCompletion() {
-        // Try to find a completion that doesn't exist
-        Optional<QuizCompletion> found = completionRepository.findUserCompletionForQuiz(999L, 888L);
-        
-        assertFalse(found.isPresent());
+    public void testGetCompletionCountsByQuizzes() {
+        completionRepository.saveCompletion(createSampleCompletion(1L, 1L, 8.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(2L, 2L, 7.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(3L, 1L, 9.0, 10.0));
+
+        Map<Long, Integer> counts = completionRepository.getCompletionCountsByQuizzes(Arrays.asList(1L, 2L, 3L));
+        assertEquals(2, (int) counts.get(1L));
+        assertEquals(1, (int) counts.get(2L));
+        assertEquals(0, (int) counts.get(3L));
     }
 
     @Test
-    public void testFindUserCompletionForQuiz_MultipleCompletions_ReturnsLatest() {
-        // Create multiple completions for same user and quiz
-        QuizCompletion completion1 = createSampleCompletion(100L, 200L, 6.0, 10.0);
-        completion1.setFinishedAt(LocalDateTime.now().minusHours(2));
-        completionRepository.saveCompletion(completion1);
+    public void testGetAverageScoresByQuizzes() {
+        completionRepository.saveCompletion(createSampleCompletion(1L, 1L, 8.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(2L, 1L, 6.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(3L, 2L, 7.0, 10.0));
 
-        QuizCompletion completion2 = createSampleCompletion(100L, 200L, 8.5, 10.0);
-        completion2.setFinishedAt(LocalDateTime.now().minusHours(1));
-        completionRepository.saveCompletion(completion2);
-
-        QuizCompletion completion3 = createSampleCompletion(100L, 200L, 9.0, 10.0);
-        completion3.setFinishedAt(LocalDateTime.now());
-        completionRepository.saveCompletion(completion3);
-
-        // Should return the most recent completion (completion3)
-        Optional<QuizCompletion> found = completionRepository.findUserCompletionForQuiz(100L, 200L);
-        
-        assertTrue(found.isPresent());
-        assertEquals(9.0, found.get().getFinalScore(), 0.01);
+        Map<Long, Double> averages = completionRepository.getAverageScoresByQuizzes(Arrays.asList(1L, 2L, 3L));
+        assertEquals(70.0, averages.get(1L), 0.01);
+        assertEquals(70.0, averages.get(2L), 0.01);
+        assertNull(averages.get(3L));
     }
 
     @Test
-    public void testFindUserCompletionForQuiz_DifferentUsersAndQuizzes() {
-        // Create completions for different users and quizzes
-        QuizCompletion completion1 = createSampleCompletion(100L, 200L, 8.0, 10.0);
-        completionRepository.saveCompletion(completion1);
+    public void testFindRecentCompletionsByUser() {
+        completionRepository.saveCompletion(createSampleCompletion(1L, 1L, 9.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(1L, 2L, 8.0, 10.0));
 
-        QuizCompletion completion2 = createSampleCompletion(101L, 200L, 7.5, 10.0);
-        completionRepository.saveCompletion(completion2);
-
-        QuizCompletion completion3 = createSampleCompletion(100L, 201L, 9.0, 10.0);
-        completionRepository.saveCompletion(completion3);
-
-        // Test finding specific combinations
-        Optional<QuizCompletion> found1 = completionRepository.findUserCompletionForQuiz(100L, 200L);
-        assertTrue(found1.isPresent());
-        assertEquals(8.0, found1.get().getFinalScore(), 0.01);
-
-        Optional<QuizCompletion> found2 = completionRepository.findUserCompletionForQuiz(101L, 200L);
-        assertTrue(found2.isPresent());
-        assertEquals(7.5, found2.get().getFinalScore(), 0.01);
-
-        Optional<QuizCompletion> found3 = completionRepository.findUserCompletionForQuiz(100L, 201L);
-        assertTrue(found3.isPresent());
-        assertEquals(9.0, found3.get().getFinalScore(), 0.01);
-
-        // Test non-existing combination
-        Optional<QuizCompletion> notFound = completionRepository.findUserCompletionForQuiz(101L, 201L);
-        assertFalse(notFound.isPresent());
+        List<QuizCompletion> recents = completionRepository.findRecentCompletionsByUser(1L, 5);
+        assertEquals(2, recents.size());
     }
 
     @Test
-    public void testFindUserCompletionForQuiz_OnlyFinishedCompletions() {
-        // Create an unfinished completion (finished_at is null)
-        QuizCompletion unfinishedCompletion = createSampleCompletion(100L, 200L, 5.0, 10.0);
-        unfinishedCompletion.setFinishedAt(null);
-        completionRepository.saveCompletion(unfinishedCompletion);
+    public void testGetCompletionCountByUser() {
+        completionRepository.saveCompletion(createSampleCompletion(1L, 1L, 9.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(1L, 2L, 8.0, 10.0));
+        completionRepository.saveCompletion(createSampleCompletion(2L, 2L, 7.0, 10.0));
 
-        // Should not find unfinished completion
-        Optional<QuizCompletion> found = completionRepository.findUserCompletionForQuiz(100L, 200L);
-        assertFalse(found.isPresent());
-
-        // Create a finished completion
-        QuizCompletion finishedCompletion = createSampleCompletion(100L, 200L, 8.0, 10.0);
-        completionRepository.saveCompletion(finishedCompletion);
-
-        // Should find the finished completion
-        found = completionRepository.findUserCompletionForQuiz(100L, 200L);
-        assertTrue(found.isPresent());
-        assertEquals(8.0, found.get().getFinalScore(), 0.01);
+        int count = completionRepository.getCompletionCountByUser(1);
+        assertEquals(2, count);
     }
 
     @Test
-    public void testFindByQuiz() {
-        // Create multiple completions for the same quiz
-        QuizCompletion completion1 = createSampleCompletion(100L, 200L, 8.0, 10.0);
-        completionRepository.saveCompletion(completion1);
+    public void testFindByIdAndFindByQuiz() {
+        QuizCompletion c1 = createSampleCompletion(10L, 99L, 5.0, 10.0);
+        Long id = completionRepository.saveCompletion(c1);
+        Optional<QuizCompletion> byId = completionRepository.findById(id);
+        assertTrue(byId.isPresent());
+        assertEquals(c1.getParticipantUserId(), byId.get().getParticipantUserId());
 
-        QuizCompletion completion2 = createSampleCompletion(101L, 200L, 7.5, 10.0);
-        completionRepository.saveCompletion(completion2);
+        List<QuizCompletion> byQuiz = completionRepository.findByQuiz(99L);
+        assertEquals(1, byQuiz.size());
+    }
 
-        QuizCompletion completion3 = createSampleCompletion(102L, 201L, 9.0, 10.0);
-        completionRepository.saveCompletion(completion3);
+    @Test
+    public void testFindUserCompletionForQuizOnlyFinished() {
+        QuizCompletion unfinished = createSampleCompletion(1L, 1L, 4.0, 10.0);
+        unfinished.setFinishedAt(null);
+        completionRepository.saveCompletion(unfinished);
 
-        List<QuizCompletion> completions = completionRepository.findByQuiz(200L);
+        Optional<QuizCompletion> shouldBeEmpty = completionRepository.findUserCompletionForQuiz(1L, 1L);
+        assertFalse(shouldBeEmpty.isPresent());
+
+        QuizCompletion finished = createSampleCompletion(1L, 1L, 9.0, 10.0);
+        completionRepository.saveCompletion(finished);
+
+        Optional<QuizCompletion> shouldExist = completionRepository.findUserCompletionForQuiz(1L, 1L);
+        assertTrue(shouldExist.isPresent());
+        assertEquals(9.0, shouldExist.get().getFinalScore(), 0.01);
+    }
+
+    @Test
+    public void testEmptyGetters() {
+        assertTrue(completionRepository.findByQuiz(1000L).isEmpty());
+        assertTrue(completionRepository.findRecentCompletionsByUser(1000L, 5).isEmpty());
+        assertTrue(completionRepository.getAverageScoresByQuizzes(Collections.emptyList()).isEmpty());
+        assertTrue(completionRepository.getCompletionCountsByQuizzes(Collections.emptyList()).isEmpty());
+        assertNull(completionRepository.getAverageScoreByQuiz(999L));
+        assertEquals(0, completionRepository.getCompletionCountByQuiz(999L));
+    }
+    @Test
+    public void testFindRecentCompletionsByFriends() throws SQLException {
+        try (Connection connection = basicDataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE friendships (" +
+                    "id BIGINT AUTO_INCREMENT PRIMARY KEY," +
+                    "friendSenderId BIGINT NOT NULL," +
+                    "friendReceiverId BIGINT NOT NULL" +
+                    ")");
+            statement.execute("INSERT INTO friendships (friendSenderId, friendReceiverId) VALUES (1, 2)");
+            statement.execute("INSERT INTO friendships (friendSenderId, friendReceiverId) VALUES (3, 1)");
+        }
+
+        // User 2 and 3 are friends with user 1
+        QuizCompletion completionFromFriend2 = createSampleCompletion(2L, 1L, 7.0, 10.0);
+        completionRepository.saveCompletion(completionFromFriend2);
+
+        QuizCompletion completionFromFriend3 = createSampleCompletion(3L, 2L, 8.0, 10.0);
+        completionRepository.saveCompletion(completionFromFriend3);
+
+        QuizCompletion selfCompletion = createSampleCompletion(1L, 3L, 9.0, 10.0); // should be excluded
+        completionRepository.saveCompletion(selfCompletion);
+
+        List<QuizCompletion> completions = completionRepository.findRecentCompletionsByFriends(1L, 10);
         assertEquals(2, completions.size());
-
-        List<QuizCompletion> singleCompletion = completionRepository.findByQuiz(201L);
-        assertEquals(1, singleCompletion.size());
-
-        List<QuizCompletion> noCompletions = completionRepository.findByQuiz(999L);
-        assertEquals(0, noCompletions.size());
+        for (QuizCompletion qc : completions) {
+            assertNotEquals(Long.valueOf(1L), qc.getParticipantUserId()); // user 1's own completion should not appear
+        }
     }
 
-    @Test
-    public void testGetCompletionCountByQuiz() {
-        // Create multiple completions for different quizzes
-        QuizCompletion completion1 = createSampleCompletion(100L, 200L, 8.0, 10.0);
-        completionRepository.saveCompletion(completion1);
+    @Test(expected = RuntimeException.class)
+    public void testFindRecentCompletionsByFriendsThrowsException() {
+        QuizCompletionRepository brokenRepo = new QuizCompletionRepositoryImpl(new BasicDataSource() {{
+            setUrl("jdbc:h2:mem:broken;INIT=RUNSCRIPT FROM 'non_existing.sql'");
+            setUsername("sa");
+            setPassword("");
+        }});
 
-        QuizCompletion completion2 = createSampleCompletion(101L, 200L, 7.5, 10.0);
-        completionRepository.saveCompletion(completion2);
-
-        QuizCompletion completion3 = createSampleCompletion(102L, 201L, 9.0, 10.0);
-        completionRepository.saveCompletion(completion3);
-
-        int count200 = completionRepository.getCompletionCountByQuiz(200L);
-        assertEquals(2, count200);
-
-        int count201 = completionRepository.getCompletionCountByQuiz(201L);
-        assertEquals(1, count201);
-
-        int countNone = completionRepository.getCompletionCountByQuiz(999L);
-        assertEquals(0, countNone);
+        brokenRepo.findRecentCompletionsByFriends(1L, 5);
     }
-} 
+
+    @Test(expected = RuntimeException.class)
+    public void testSaveCompletionThrowsException() {
+        QuizCompletionRepository brokenRepo = new QuizCompletionRepositoryImpl(new BasicDataSource() {{
+            setUrl("jdbc:h2:mem:broken2;INIT=RUNSCRIPT FROM 'non_existing.sql'");
+            setUsername("sa");
+            setPassword("");
+        }});
+
+        QuizCompletion badCompletion = createSampleCompletion(1L, 1L, 9.0, 10.0);
+        brokenRepo.saveCompletion(badCompletion);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testFindByIdThrowsException() {
+        QuizCompletionRepository brokenRepo = new QuizCompletionRepositoryImpl(new BasicDataSource() {{
+            setUrl("jdbc:h2:mem:broken3;INIT=RUNSCRIPT FROM 'non_existing.sql'");
+            setUsername("sa");
+            setPassword("");
+        }});
+
+        brokenRepo.findById(1L);
+    }
+
+
+}

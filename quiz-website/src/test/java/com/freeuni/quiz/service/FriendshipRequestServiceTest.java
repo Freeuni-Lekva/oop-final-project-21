@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -105,6 +106,22 @@ public class FriendshipRequestServiceTest {
         assertTrue(service.requestExists(60, 70));
         assertFalse(service.requestExists(70, 60));
     }
+
+    @Test
+    public void testGetRecentRequestsReceivedByUser() throws Exception {
+        service.sendRequest(200, 100);
+        Thread.sleep(10); // ensure timestamp difference
+        service.sendRequest(201, 100);
+        Thread.sleep(10);
+        service.sendRequest(202, 100);
+
+        List<FriendshipRequest> limited2 = service.getRecentRequestsReceivedByUser(100, 2);
+        List<FriendshipRequest> limited5 = service.getRecentRequestsReceivedByUser(100, 5);
+
+        assertEquals(2, limited2.size());
+        assertEquals(3, limited5.size());
+    }
+
 
     @Test
     public void testFindRequestById() throws Exception {

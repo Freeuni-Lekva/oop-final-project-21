@@ -7,6 +7,9 @@ import org.junit.*;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -137,7 +140,6 @@ public class UserServiceTest {
         UserDTO userBefore = userService.findByUsername("johnny");
         assertEquals("original bio", userBefore.getBio());
 
-        // Update user info
         boolean updated = userService.updateUserInfo(
                 userBefore.getId(),
                 "Johnny",
@@ -149,7 +151,6 @@ public class UserServiceTest {
 
         assertTrue(updated);
 
-        // Fetch again and verify changes
         UserDTO userAfter = userService.findByUsername("johnny");
         assertEquals("Johnny", userAfter.getFirstName());
         assertEquals("Updated", userAfter.getLastName());
@@ -157,6 +158,27 @@ public class UserServiceTest {
         assertEquals("Updated bio", userAfter.getBio());
         assertEquals("http://image.com/johnny.jpg", userAfter.getImageURL());
     }
+    @Test
+    public void testRegisterUser_InvalidImageURL_ShouldUsePlaceholder() throws Exception {
+        String badImageURL = "https://example.com/not-a-real-image.jpg"; // should fallback
+        userService.registerUser("badimage", "pass", "Fake", "User", "badimg@example.com", badImageURL, null);
+
+        UserDTO user = userService.findByUsername("badimage");
+
+        assertNotNull(user);
+        assertTrue(user.getImageURL().startsWith("https://t3.ftcdn.net"));
+    }
+
+    @Test
+    public void testRegisterUser_EmptyImageURL_ShouldUsePlaceholder() throws Exception {
+        userService.registerUser("noimage", "pass", "No", "Image", "noimg@example.com", "", null);
+
+        UserDTO user = userService.findByUsername("noimage");
+
+        assertNotNull(user);
+        assertTrue(user.getImageURL().startsWith("https://t3.ftcdn.net"));
+    }
+
     @Test
     public void testSearchUsers() throws Exception {
         userService.registerUser("alex01", "pass", "Alex", "Miller", "alex@example.com", null, null);
@@ -188,6 +210,42 @@ public class UserServiceTest {
         UserDTO notFound = userService.findByUsername("ghost");
         assertNull(notFound);
     }
+
+    @Test
+    public void testFindById() throws Exception {
+        userService.registerUser("singleUser", "pass", "Lara", "Croft", "lara@example.com", null, null);
+        UserDTO user = userService.findByUsername("singleUser");
+
+        assertNotNull(user);
+        UserDTO foundById = userService.findById(user.getId());
+
+        assertNotNull("User should be found by ID", foundById);
+        assertEquals(user.getId(), foundById.getId());
+        assertEquals("Lara", foundById.getFirstName());
+    }
+
+    @Test
+    public void testFindUsersByIds() throws Exception {
+        userService.registerUser("u1", "pass", "Alice", "One", "alice@example.com", null, null);
+        userService.registerUser("u2", "pass", "Bob", "Two", "bob@example.com", null, null);
+        userService.registerUser("u3", "pass", "Charlie", "Three", "charlie@example.com", null, null);
+
+        UserDTO user1 = userService.findByUsername("u1");
+        UserDTO user2 = userService.findByUsername("u2");
+
+        Set<Integer> ids = new HashSet<>();
+        ids.add(user1.getId());
+        ids.add(user2.getId());
+
+        Map<Integer, UserDTO> userMap = userService.findUsersByIds(ids);
+
+        assertEquals(2, userMap.size());
+        assertTrue(userMap.containsKey(user1.getId()));
+        assertTrue(userMap.containsKey(user2.getId()));
+        assertEquals("Alice", userMap.get(user1.getId()).getFirstName());
+        assertEquals("Bob", userMap.get(user2.getId()).getFirstName());
+    }
+
 
 }
 

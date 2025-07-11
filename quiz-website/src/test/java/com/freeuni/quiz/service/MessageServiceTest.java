@@ -105,4 +105,30 @@ public class MessageServiceTest {
         userDAO.addUser(u);
         return u;
     }
+    @Test
+    public void testGetRecentConversationsWithProfileDetails() throws SQLException {
+        User u1 = createUser("john_limit", "John", "Doe", "john_limit@example.com");
+        User u2 = createUser("alice_limit", "Alice", "Smith", "alice_limit@example.com");
+        User u3 = createUser("bob_limit", "Bob", "Builder", "bob_limit@example.com");
+
+        messageDAO.sendMessage(u1.getId(), u2.getId(), "Message 1 to Alice");
+        messageDAO.sendMessage(u3.getId(), u1.getId(), "Message 2 from Bob");
+        messageDAO.sendMessage(u2.getId(), u1.getId(), "Message 3 from Alice");
+
+        LinkedHashMap<Message, UserDTO> result = messageService.getRecentConversationsWithProfileDetails(u1.getId(), 2);
+
+        assertEquals(2, result.size());
+
+        Message[] messages = result.keySet().toArray(new Message[0]);
+        UserDTO[] userDTOs = result.values().toArray(new UserDTO[0]);
+
+        assertTrue(messages[0].getContent().contains("Message 3 from Alice") || messages[0].getContent().contains("Message 2 from Bob"));
+        assertTrue(messages[1].getContent().contains("Message 3 from Alice") || messages[1].getContent().contains("Message 2 from Bob"));
+        assertNotEquals(messages[0].getContent(), messages[1].getContent());
+
+        assertTrue(userDTOs[0].getUserName().equals("alice_limit") || userDTOs[0].getUserName().equals("bob_limit"));
+        assertTrue(userDTOs[1].getUserName().equals("alice_limit") || userDTOs[1].getUserName().equals("bob_limit"));
+        assertNotEquals(userDTOs[0].getUserName(), userDTOs[1].getUserName());
+    }
+
 }

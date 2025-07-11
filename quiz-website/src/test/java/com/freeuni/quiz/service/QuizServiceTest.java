@@ -1,10 +1,12 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.*;
+import com.freeuni.quiz.DTO.PopularQuizDTO;
+import com.freeuni.quiz.repository.QuizCompletionRepository;
+import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -12,6 +14,9 @@ import java.sql.Statement;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class QuizServiceTest {
 
@@ -19,6 +24,7 @@ class QuizServiceTest {
     private QuizService quizService;
     private Quiz testQuiz;
     private Question testQuestion;
+    private static QuizCompletionRepository quizCompletionRepository;
 
     @BeforeAll
     static void setupClass() throws Exception {
@@ -27,11 +33,12 @@ class QuizServiceTest {
         ds.setUser("sa");
         ds.setPassword("");
         dataSource = ds;
+        quizCompletionRepository=new QuizCompletionRepositoryImpl(ds);
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DROP ALL OBJECTS");
-            
+
             stmt.execute("CREATE TABLE users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "hashPassword VARCHAR(255) NOT NULL," +
@@ -43,14 +50,14 @@ class QuizServiceTest {
                     "imageURL VARCHAR(2083)," +
                     "bio TEXT" +
                     ")");
-            
+
             stmt.execute("CREATE TABLE quiz_categories (" +
                     "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
                     "category_name VARCHAR(64) NOT NULL," +
                     "description TEXT," +
                     "is_active BOOLEAN DEFAULT TRUE" +
                     ")");
-            
+
             stmt.execute("CREATE TABLE quizzes (" +
                     "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
                     "creator_user_id INT NOT NULL," +
@@ -63,7 +70,7 @@ class QuizServiceTest {
                     "FOREIGN KEY (creator_user_id) REFERENCES users(id) ON DELETE CASCADE," +
                     "FOREIGN KEY (category_id) REFERENCES quiz_categories(id) ON DELETE CASCADE" +
                     ")");
-            
+
             stmt.execute("CREATE TABLE test_questions (" +
                     "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
                     "author_user_id INT NOT NULL," +
@@ -75,7 +82,7 @@ class QuizServiceTest {
                     "FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE CASCADE," +
                     "FOREIGN KEY (category_id) REFERENCES quiz_categories(id) ON DELETE CASCADE" +
                     ")");
-                    
+
             stmt.execute("CREATE TABLE quiz_question_mapping (" +
                     "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
                     "quiz_id BIGINT NOT NULL," +
@@ -86,7 +93,7 @@ class QuizServiceTest {
                     "UNIQUE (quiz_id, question_id)," +
                     "UNIQUE (quiz_id, sequence_order)" +
                     ")");
-                    
+
             stmt.execute("CREATE TABLE quiz_completions (" +
                     "id BIGINT PRIMARY KEY AUTO_INCREMENT," +
                     "participant_user_id INT NOT NULL," +
@@ -100,7 +107,7 @@ class QuizServiceTest {
                     "FOREIGN KEY (participant_user_id) REFERENCES users(id) ON DELETE CASCADE," +
                     "FOREIGN KEY (test_id) REFERENCES quizzes(id) ON DELETE CASCADE" +
                     ")");
-            
+
             stmt.execute("INSERT INTO users (id, hashPassword, salt, firstName, lastName, userName, email) VALUES " +
                     "(100, 'hash', 'salt', 'Test', 'User', 'testuser', 'test@example.com')");
             stmt.execute("INSERT INTO quiz_categories (id, category_name, description) VALUES " +
@@ -111,7 +118,7 @@ class QuizServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         quizService = new QuizService(dataSource);
-        
+
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DELETE FROM quiz_question_mapping");
@@ -119,14 +126,14 @@ class QuizServiceTest {
             stmt.execute("DELETE FROM quizzes");
             stmt.execute("DELETE FROM test_questions");
         }
-        
+
         testQuiz = new Quiz();
         testQuiz.setCreatorUserId(100);
         testQuiz.setCategoryId(10L);
         testQuiz.setTestTitle("Test Quiz");
         testQuiz.setTestDescription("Test Description");
         testQuiz.setTimeLimitMinutes(30L);
-        
+
         testQuestion = new Question();
         testQuestion.setAuthorUserId(100);
         testQuestion.setCategoryId(10L);
@@ -149,8 +156,8 @@ class QuizServiceTest {
         testQuiz.setTestTitle(null);
 
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class, 
-            () -> quizService.createQuiz(testQuiz)
+                IllegalArgumentException.class,
+                () -> quizService.createQuiz(testQuiz)
         );
         assertEquals("Quiz title is required", exception.getMessage());
     }
@@ -160,8 +167,8 @@ class QuizServiceTest {
         testQuiz.setTestTitle("   ");
 
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class, 
-            () -> quizService.createQuiz(testQuiz)
+                IllegalArgumentException.class,
+                () -> quizService.createQuiz(testQuiz)
         );
         assertEquals("Quiz title is required", exception.getMessage());
     }
@@ -171,8 +178,8 @@ class QuizServiceTest {
         testQuiz.setTestDescription(null);
 
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class, 
-            () -> quizService.createQuiz(testQuiz)
+                IllegalArgumentException.class,
+                () -> quizService.createQuiz(testQuiz)
         );
         assertEquals("Quiz description is required", exception.getMessage());
     }
@@ -182,8 +189,8 @@ class QuizServiceTest {
         testQuiz.setTestDescription("");
 
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class, 
-            () -> quizService.createQuiz(testQuiz)
+                IllegalArgumentException.class,
+                () -> quizService.createQuiz(testQuiz)
         );
         assertEquals("Quiz description is required", exception.getMessage());
     }
@@ -193,8 +200,8 @@ class QuizServiceTest {
         testQuiz.setTimeLimitMinutes(0L);
 
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class, 
-            () -> quizService.createQuiz(testQuiz)
+                IllegalArgumentException.class,
+                () -> quizService.createQuiz(testQuiz)
         );
         assertEquals("Time limit must be positive", exception.getMessage());
     }
@@ -204,8 +211,8 @@ class QuizServiceTest {
         testQuiz.setCategoryId(null);
 
         IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class, 
-            () -> quizService.createQuiz(testQuiz)
+                IllegalArgumentException.class,
+                () -> quizService.createQuiz(testQuiz)
         );
         assertEquals("Category ID is required", exception.getMessage());
     }
@@ -282,7 +289,7 @@ class QuizServiceTest {
         boolean result = quizService.deleteQuiz(quizId);
 
         assertTrue(result);
-        
+
         Optional<Quiz> deletedQuiz = quizService.getQuizById(quizId);
         assertFalse(deletedQuiz.isPresent());
     }
@@ -338,4 +345,225 @@ class QuizServiceTest {
 
         assertNull(result);
     }
-} 
+
+
+    @Test
+    void addQuestionToQuiz_Valid_ShouldReturnTrueAndUpdateLastQuestionNumber() {
+        Long quizId = quizService.createQuiz(testQuiz);
+
+        Question question = new Question();
+        question.setAuthorUserId(100);
+        question.setCategoryId(10L);
+        question.setQuestionTitle("Q1");
+        question.setQuestionType(QuestionType.TEXT);
+        Long questionId = insertTestQuestion(question);
+
+        boolean added = quizService.addQuestionToQuiz(quizId, questionId, 1L);
+        assertTrue(added);
+
+        Optional<Quiz> quizOpt = quizService.getQuizById(quizId);
+        assertTrue(quizOpt.isPresent());
+        assertEquals(1L, quizOpt.get().getLastQuestionNumber());
+    }
+
+    @Test
+    void addQuestionToQuiz_QuizNotFound_ShouldReturnFalse() {
+        boolean result = quizService.addQuestionToQuiz(999L, 1L, 1L);
+        assertFalse(result);
+    }
+
+    @Test
+    void addQuestionToQuiz_QuestionNotFound_ShouldReturnFalse() {
+        Long quizId = quizService.createQuiz(testQuiz);
+        boolean result = quizService.addQuestionToQuiz(quizId, 999L, 1L);
+        assertFalse(result);
+    }
+
+    @Test
+    void removeQuestionFromQuiz_ShouldReturnTrue() {
+        Long quizId = quizService.createQuiz(testQuiz);
+        Question question = new Question();
+        question.setAuthorUserId(100);
+        question.setCategoryId(10L);
+        question.setQuestionTitle("Q2");
+        question.setQuestionType(QuestionType.TEXT);
+        Long questionId = insertTestQuestion(question);
+
+        quizService.addQuestionToQuiz(quizId, questionId, 1L);
+
+        boolean removed = quizService.removeQuestionFromQuiz(quizId, questionId);
+        assertTrue(removed);
+    }
+
+    @Test
+    void getQuizQuestions_ShouldReturnList() {
+        Long quizId = quizService.createQuiz(testQuiz);
+
+        Question question1 = new Question();
+        question1.setAuthorUserId(100);
+        question1.setCategoryId(10L);
+        question1.setQuestionTitle("Q1");
+        question1.setQuestionType(QuestionType.TEXT);
+        Long q1Id = insertTestQuestion(question1);
+
+        Question question2 = new Question();
+        question2.setAuthorUserId(100);
+        question2.setCategoryId(10L);
+        question2.setQuestionTitle("Q2");
+        question2.setQuestionType(QuestionType.TEXT);
+        Long q2Id = insertTestQuestion(question2);
+
+        quizService.addQuestionToQuiz(quizId, q1Id, 1L);
+        quizService.addQuestionToQuiz(quizId, q2Id, 2L);
+
+        List<Question> questions = quizService.getQuizQuestions(quizId);
+        assertEquals(2, questions.size());
+        assertTrue(questions.stream().anyMatch(q -> q.getId().equals(q1Id)));
+        assertTrue(questions.stream().anyMatch(q -> q.getId().equals(q2Id)));
+    }
+
+    @Test
+    void getCompletionCountsForQuizzes_ShouldReturnEmptyForEmptyList() {
+        Map<Integer, Integer> result = quizService.getCompletionCountsForQuizzes(Collections.emptyList());
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getAverageScoresForQuizzes_ShouldReturnEmptyForEmptyList() {
+        Map<Integer, Double> result = quizService.getAverageScoresForQuizzes(Collections.emptyList());
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getPopularQuizzesWithCompletionCount_ShouldReturnList() {
+        List<PopularQuizDTO> popularQuizzes = quizService.getPopularQuizzesWithCompletionCount(5);
+        assertNotNull(popularQuizzes);
+    }
+
+    @Test
+    void getRecentlyCreatedQuizzes_ShouldReturnList() {
+        quizService.createQuiz(testQuiz);
+        List<Quiz> recent = quizService.getRecentlyCreatedQuizzes(5);
+        assertFalse(recent.isEmpty());
+    }
+
+    @Test
+    void getRecentlyCreatedByUser_ShouldReturnList() {
+        quizService.createQuiz(testQuiz);
+        List<Quiz> recentByUser = quizService.getRecentlyCreatedByUser(100L, 5);
+        assertFalse(recentByUser.isEmpty());
+    }
+
+    @Test
+    void getRecentCompletionsByUser_ShouldReturnList() {
+        List<QuizCompletion> completions = quizService.getRecentCompletionsByUser(100L, 5);
+        assertNotNull(completions);
+    }
+    @Test
+    void getCompletionCountsForQuizzes_ShouldReturnCorrectMap() throws Exception {
+        QuizService quizService = new QuizService(null); // no DataSource needed here
+
+        // Mock the QuizCompletionRepository
+        QuizCompletionRepository mockQuizCompletionRepository = Mockito.mock(QuizCompletionRepository.class);
+
+        // Inject the mock into the private final field using reflection
+        java.lang.reflect.Field field = QuizService.class.getDeclaredField("quizCompletionRepository");
+        field.setAccessible(true);
+        field.set(quizService, mockQuizCompletionRepository);
+
+        Quiz quiz1 = new Quiz();
+        quiz1.setId(1L);
+        Quiz quiz2 = new Quiz();
+        quiz2.setId(2L);
+
+        List<Quiz> quizzes = Arrays.asList(quiz1, quiz2);
+
+        Map<Long, Integer> completionCounts = new HashMap<>();
+        completionCounts.put(1L, 5);
+        completionCounts.put(2L, 10);
+
+        when(mockQuizCompletionRepository.getCompletionCountsByQuizzes(anyList())).thenReturn(completionCounts);
+
+        Map<Integer, Integer> result = quizService.getCompletionCountsForQuizzes(quizzes);
+
+        assertEquals(2, result.size());
+        assertEquals(5, result.get(1));
+        assertEquals(10, result.get(2));
+
+        verify(mockQuizCompletionRepository).getCompletionCountsByQuizzes(anyList());
+    }
+    @Test
+    void getAverageScoresForQuizzes_ShouldReturnCorrectMap() {
+        QuizService quizService = new QuizService(null); // pass null DataSource
+
+        // Create a mock QuizCompletionRepository
+        QuizCompletionRepository mockQuizCompletionRepository = Mockito.mock(QuizCompletionRepository.class);
+
+        // Use reflection to inject mock into private final field
+        try {
+            java.lang.reflect.Field field = QuizService.class.getDeclaredField("quizCompletionRepository");
+            field.setAccessible(true);
+            field.set(quizService, mockQuizCompletionRepository);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        Quiz quiz1 = new Quiz();
+        quiz1.setId(1L);
+        Quiz quiz2 = new Quiz();
+        quiz2.setId(2L);
+
+        List<Quiz> quizzes = Arrays.asList(quiz1, quiz2);
+
+        Map<Long, Double> averageScores = new HashMap<>();
+        averageScores.put(1L, 85.5);
+        averageScores.put(2L, 90.0);
+
+        when(mockQuizCompletionRepository.getAverageScoresByQuizzes(anyList())).thenReturn(averageScores);
+
+        Map<Integer, Double> result = quizService.getAverageScoresForQuizzes(quizzes);
+
+        assertEquals(2, result.size());
+        assertEquals(85.5, result.get(1));
+        assertEquals(90.0, result.get(2));
+
+        verify(mockQuizCompletionRepository).getAverageScoresByQuizzes(anyList());
+    }
+
+    @Test
+    void getAverageScoresForQuizzes_NullOrEmptyList_ShouldReturnEmptyMap() {
+        QuizService quizService = new QuizService(null);
+
+        Map<Integer, Double> resultNull = quizService.getAverageScoresForQuizzes(null);
+        Map<Integer, Double> resultEmpty = quizService.getAverageScoresForQuizzes(Collections.emptyList());
+
+        assertTrue(resultNull.isEmpty());
+        assertTrue(resultEmpty.isEmpty());
+    }
+    private Long insertTestQuestion(Question question) {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            String insert = String.format(
+                    "INSERT INTO test_questions (author_user_id, category_id, question_title, question_type, question_data) VALUES (%d, %d, '%s', '%s', ?)",
+                    question.getAuthorUserId(),
+                    question.getCategoryId(),
+                    question.getQuestionTitle(),
+                    question.getQuestionType().name()
+            );
+            var ps = conn.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
+            ps.setBytes(1, new byte[0]);
+
+            ps.executeUpdate();
+
+            var rs = ps.getGeneratedKeys();
+            rs.next();
+            Long id = rs.getLong(1);
+            question.setId(id);
+            ps.close();
+            return id;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}
