@@ -6,6 +6,7 @@
 <%@ page import="com.freeuni.quiz.bean.QuizCompletion" %>
 <%@ page import="com.freeuni.quiz.bean.FriendshipRequest" %>
 <%@ page import="com.freeuni.quiz.bean.Message" %>
+<%@ page import="com.freeuni.quiz.DTO.AnnouncementDTO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.LinkedHashMap" %>
@@ -35,6 +36,9 @@
     List<FriendshipRequest> recentFriendRequests = (List<FriendshipRequest>) request.getAttribute("recentFriendRequests");
     LinkedHashMap<Message, UserDTO> recentConversations = (LinkedHashMap<Message, UserDTO>) request.getAttribute("recentConversations");
     Map<Integer, UserDTO> friendRequestSenders = (Map<Integer, UserDTO>) request.getAttribute("friendRequestSenders");
+    
+    // Announcement data
+    List<AnnouncementDTO> recentAnnouncements = (List<AnnouncementDTO>) request.getAttribute("recentAnnouncements");
     
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
     
@@ -161,6 +165,44 @@
         .box-content a:hover {
             text-decoration: underline;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -174,6 +216,7 @@
     <div class="username"><%= user.getUserName() %></div>
 
     <a href="${pageContext.request.contextPath}/home" style="background-color: rgba(255, 255, 255, 0.2);">🏠 Home</a>
+    <a href="#" onclick="showAnnouncements()">📢 Announcements</a>
     <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
     <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
     <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
@@ -231,6 +274,33 @@
             <strong>Error:</strong> <%= errorMessage %>
         </div>
     <% } %>
+
+    <!-- Announcements Section -->
+    <div class="section-header">
+        📢 Latest Announcements
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 40px;">
+        <div class="box">
+            <h2>📢 Recent Announcements</h2>
+            <div class="box-content">
+                <% if (recentAnnouncements != null && !recentAnnouncements.isEmpty()) { %>
+                    <% for (AnnouncementDTO announcement : recentAnnouncements) { %>
+                        <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                            <h4 style="margin: 0 0 5px 0; color: #333;"><%= announcement.getTitle() %></h4>
+                            <p style="margin: 0 0 5px 0; color: #666;"><%= announcement.getContent() %></p>
+                            <small style="color: #888;">
+                                By <%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Admin" %> 
+                                - <%= announcement.getCreatedAt() != null ? announcement.getCreatedAt().toLocalDateTime().format(formatter) : "" %>
+                            </small>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <p style="color: #666; font-style: italic;">No announcements available</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
 
     <!-- Social Section -->
     <div class="section-header">
@@ -468,6 +538,47 @@
         </div>
     </div>
 </div>
+
+<!-- Announcements Modal -->
+<div id="announcementsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAnnouncements()">&times;</span>
+        <h2>📢 All Announcements</h2>
+        <div id="announcementsContent">
+            <% if (recentAnnouncements != null && !recentAnnouncements.isEmpty()) { %>
+                <% for (AnnouncementDTO announcement : recentAnnouncements) { %>
+                    <div style="border-bottom: 1px solid #eee; padding: 15px 0; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; color: #333;"><%= announcement.getTitle() %></h3>
+                        <p style="margin: 0 0 10px 0; color: #666; line-height: 1.5;"><%= announcement.getContent() %></p>
+                        <small style="color: #888;">
+                            By <%= announcement.getAuthorName() != null ? announcement.getAuthorName() : "Admin" %> 
+                            - <%= announcement.getCreatedAt() != null ? announcement.getCreatedAt().toLocalDateTime().format(formatter) : "" %>
+                        </small>
+                    </div>
+                <% } %>
+            <% } else { %>
+                <p style="color: #666; font-style: italic; text-align: center; padding: 20px;">No announcements available</p>
+            <% } %>
+        </div>
+    </div>
+</div>
+
 <script src="js/search.js?v=2"></script>
+<script>
+function showAnnouncements() {
+    document.getElementById('announcementsModal').style.display = 'block';
+}
+
+function closeAnnouncements() {
+    document.getElementById('announcementsModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    var modal = document.getElementById('announcementsModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
 </body>
 </html>
