@@ -3,7 +3,7 @@ package com.freeuni.quiz.servlets;
 import com.freeuni.quiz.bean.*;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,7 +20,7 @@ public class QuizViewServlet extends HttpServlet {
 
     private QuizService quizService;
     private QuizSessionService sessionService;
-    private QuizCompletionRepositoryImpl quizCompletionRepository;
+    private QuizCompletionDAOImpl quizCompletionRepository;
 
     @Override
     public void init() throws ServletException {
@@ -28,7 +28,7 @@ public class QuizViewServlet extends HttpServlet {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         this.quizService = new QuizService(dataSource);
         this.sessionService = new QuizSessionService(dataSource);
-        this.quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
+        this.quizCompletionRepository = new QuizCompletionDAOImpl(dataSource);
     }
 
     @Override

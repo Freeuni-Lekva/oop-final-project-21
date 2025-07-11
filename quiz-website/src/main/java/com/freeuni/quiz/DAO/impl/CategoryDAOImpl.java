@@ -1,7 +1,7 @@
-package com.freeuni.quiz.repository.impl;
+package com.freeuni.quiz.DAO.impl;
 
 import com.freeuni.quiz.bean.Category;
-import com.freeuni.quiz.repository.CategoryRepository;
+import com.freeuni.quiz.DAO.CategoryDAO;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CategoryRepositoryImpl implements CategoryRepository {
+public class CategoryDAOImpl implements CategoryDAO {
     private final DataSource dataSource;
 
-    public CategoryRepositoryImpl(DataSource dataSource) {
+    public CategoryDAOImpl(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

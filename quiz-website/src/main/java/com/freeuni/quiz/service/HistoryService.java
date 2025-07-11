@@ -4,24 +4,24 @@ import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.DTO.UserHistoryDTO;
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.QuizCompletion;
-import com.freeuni.quiz.repository.HistoryRepository;
-import com.freeuni.quiz.repository.impl.HistoryRepositoryImpl;
+import com.freeuni.quiz.DAO.HistoryDAO;
+import com.freeuni.quiz.DAO.impl.HistoryDAOImpl;
 
 import javax.sql.DataSource;
 import java.util.*;
 
 public class HistoryService {
 
-    private final HistoryRepository historyRepository;
+    private final HistoryDAO historyDAO;
     private final QuizService quizService;
 
     public HistoryService(DataSource dataSource) {
-        this.historyRepository = new HistoryRepositoryImpl(dataSource);
+        this.historyDAO = new HistoryDAOImpl(dataSource);
         this.quizService = new QuizService(dataSource);
     }
 
     public UserHistoryDTO getUserHistory(int userId, UserDTO user) {
-        List<QuizCompletion> completions = historyRepository.getUserCompletions(userId);
+        List<QuizCompletion> completions = historyDAO.getUserCompletions(userId);
 
         Map<QuizCompletion, Quiz> completionQuizMap = new LinkedHashMap<>();
         for (QuizCompletion completion : completions) {
@@ -31,11 +31,11 @@ public class HistoryService {
             }
         }
 
-        int totalQuizzesTaken = historyRepository.getTotalQuizzesTaken(userId);
-        double averageScore = historyRepository.getAverageScore(userId);
-        int bestScore = historyRepository.getBestScore(userId);
-        String mostPlayedCategory = historyRepository.getMostPlayedCategory(userId);
-        int totalTimeTaken = historyRepository.getTotalTimeTaken(userId);
+        int totalQuizzesTaken = historyDAO.getTotalQuizzesTaken(userId);
+        double averageScore = historyDAO.getAverageScore(userId);
+        int bestScore = historyDAO.getBestScore(userId);
+        String mostPlayedCategory = historyDAO.getMostPlayedCategory(userId);
+        int totalTimeTaken = historyDAO.getTotalTimeTaken(userId);
 
         return new UserHistoryDTO(
                 user,
@@ -49,19 +49,19 @@ public class HistoryService {
     }
 
     public List<QuizCompletion> getUserRecentCompletions(int userId, int limit) {
-        return historyRepository.getUserRecentCompletions(userId, limit);
+        return historyDAO.getUserRecentCompletions(userId, limit);
     }
 
     public int getTotalQuizzesTaken(int userId) {
-        return historyRepository.getTotalQuizzesTaken(userId);
+        return historyDAO.getTotalQuizzesTaken(userId);
     }
 
     public double getAverageScore(int userId) {
-        return historyRepository.getAverageScore(userId);
+        return historyDAO.getAverageScore(userId);
     }
 
     public Map<String, Integer> getCategoryDistribution(int userId) {
-        return historyRepository.getCategoryDistribution(userId);
+        return historyDAO.getCategoryDistribution(userId);
     }
 
     public Map<QuizCompletion, Quiz> getCompletionQuizMap(List<QuizCompletion> completions) {
@@ -76,7 +76,7 @@ public class HistoryService {
     }
 
     public Map<Quiz, List<QuizCompletion>> getQuizCompletionsMap(int userId) {
-        List<QuizCompletion> completions = historyRepository.getUserCompletions(userId);
+        List<QuizCompletion> completions = historyDAO.getUserCompletions(userId);
         Map<Quiz, List<QuizCompletion>> quizCompletionsMap = new LinkedHashMap<>();
 
         for (QuizCompletion completion : completions) {

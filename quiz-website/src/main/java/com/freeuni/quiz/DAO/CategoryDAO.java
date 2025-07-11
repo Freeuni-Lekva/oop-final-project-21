@@ -1,11 +1,11 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.Category;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface CategoryRepository {
+public interface CategoryDAO {
 
     Long saveCategory(Category category);
 

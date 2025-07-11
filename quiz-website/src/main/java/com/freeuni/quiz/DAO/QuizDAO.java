@@ -1,4 +1,4 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.DTO.PopularQuizDTO;
@@ -6,7 +6,7 @@ import com.freeuni.quiz.DTO.PopularQuizDTO;
 import java.util.List;
 import java.util.Optional;
 
-public interface QuizRepository {
+public interface QuizDAO {
     Long saveQuiz(Quiz quiz);
 
     Optional<Quiz> findById(Long quizId);

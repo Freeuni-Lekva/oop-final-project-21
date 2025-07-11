@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS test_questions (
                                               question_data MEDIUMBLOB NOT NULL,
                                               question_title VARCHAR(128),
                                               question_type ENUM('TEXT', 'MULTIPLE_CHOICE', 'IMAGE') DEFAULT 'TEXT',
+                                              points DOUBLE DEFAULT 10.0,
                                               FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE CASCADE,
                                               FOREIGN KEY (category_id) REFERENCES quiz_categories(id) ON DELETE CASCADE
 );

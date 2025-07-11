@@ -1,4 +1,4 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.Question;
 import com.freeuni.quiz.bean.QuestionType;
@@ -6,7 +6,7 @@ import com.freeuni.quiz.bean.QuestionType;
 import java.util.List;
 import java.util.Optional;
 
-public interface QuestionRepository {
+public interface QuestionDAO {
 
     Long saveQuestion(Question question);
 
