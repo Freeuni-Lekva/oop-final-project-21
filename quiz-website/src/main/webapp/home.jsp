@@ -119,7 +119,7 @@
     <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
     <a href="#">🏆 Achievements</a>
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
-    <a href="#">Challenges</a>
+    <a href="${pageContext.request.contextPath}/challenges">Challenges</a>
     <a href="#">History</a>
 </div>
 
