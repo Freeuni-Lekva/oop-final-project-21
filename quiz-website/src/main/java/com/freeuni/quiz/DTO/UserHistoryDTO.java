@@ -12,7 +12,7 @@ public class UserHistoryDTO {
     private double averageScore;
     private int bestScore;
     private String mostPlayedCategory;
-    private int totalTimeTaken; // in minutes
+    private int totalTimeTaken;
 
     public UserHistoryDTO() {}
 
@@ -28,7 +28,6 @@ public class UserHistoryDTO {
         this.totalTimeTaken = totalTimeTaken;
     }
 
-    // Getters and setters
     public UserDTO getUser() { return user; }
     public void setUser(UserDTO user) { this.user = user; }
 
