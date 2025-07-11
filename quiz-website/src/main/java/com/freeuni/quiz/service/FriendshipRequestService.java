@@ -34,6 +34,13 @@ public class FriendshipRequestService {
         return requestDAO.findRequestsByReceiverId(receiverId);
     }
 
+    public List<FriendshipRequest> getRecentRequestsReceivedByUser(int receiverId, int limit) throws SQLException {
+        List<FriendshipRequest> requests = requestDAO.findRequestsByReceiverId(receiverId);
+        return requests.stream()
+            .limit(limit)
+            .collect(java.util.stream.Collectors.toList());
+    }
+
     public boolean requestExists(int senderId, int receiverId) throws SQLException {
         return requestDAO.exists(senderId, receiverId);
     }
