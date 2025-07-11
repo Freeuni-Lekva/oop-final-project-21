@@ -8,6 +8,7 @@ public class UserDTO {
     private String imageURL;
     private String bio;
     private int id;
+    private boolean isAdmin;
 
     public UserDTO(int id, String userName, String firstName, String lastName, String email, String imageURL, String bio) {
         this.id=id;
@@ -17,6 +18,18 @@ public class UserDTO {
         this.email = email;
         this.imageURL = imageURL;
         this.bio = bio;
+        this.isAdmin = false;
+    }
+
+    public UserDTO(int id, String userName, String firstName, String lastName, String email, String imageURL, String bio, boolean isAdmin) {
+        this.id=id;
+        this.userName = userName;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.imageURL = imageURL;
+        this.bio = bio;
+        this.isAdmin = isAdmin;
     }
 
     public int getId() {
@@ -62,5 +75,10 @@ public class UserDTO {
     }
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public boolean isAdmin() {return isAdmin;}
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 }

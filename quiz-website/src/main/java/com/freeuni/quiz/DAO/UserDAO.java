@@ -16,8 +16,8 @@ public class UserDAO {
     }
 
     public boolean addUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (hashPassword, salt, firstName, lastName, userName, email, imageURL, bio) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (hashPassword, salt, firstName, lastName, userName, email, imageURL, bio, isAdmin) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -29,6 +29,7 @@ public class UserDAO {
             stmt.setString(6, user.getEmail());
             stmt.setString(7, user.getImageURL());
             stmt.setString(8, user.getBio());
+            stmt.setBoolean(9, user.isAdmin());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -112,7 +113,7 @@ public class UserDAO {
 
 
     public boolean updateUser(User user) throws SQLException {
-        String sql = "UPDATE users SET hashPassword = ?, salt = ?, firstName = ?, lastName = ?, userName = ?, email = ?, imageURL = ?, bio = ? WHERE id = ?";
+        String sql = "UPDATE users SET hashPassword = ?, salt = ?, firstName = ?, lastName = ?, userName = ?, email = ?, imageURL = ?, bio = ?, isAdmin = ? WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
 
@@ -124,7 +125,8 @@ public class UserDAO {
             stmt.setString(6, user.getEmail());
             stmt.setString(7, user.getImageURL());
             stmt.setString(8, user.getBio());
-            stmt.setInt(9, user.getId());
+            stmt.setBoolean(9, user.isAdmin());
+            stmt.setInt(10, user.getId());
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;
@@ -189,7 +191,42 @@ public class UserDAO {
         user.setEmail(rs.getString("email"));
         user.setImageURL(rs.getString("imageURL"));
         user.setBio(rs.getString("bio"));
+        user.setAdmin(rs.getBoolean("isAdmin"));
         return user;
+    }
+
+    public boolean promoteToAdmin(int userId) throws SQLException {
+        String sql = "UPDATE users SET isAdmin = true WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        }
+    }
+
+    public boolean demoteFromAdmin(int userId) throws SQLException {
+        String sql = "UPDATE users SET isAdmin = false WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        }
+    }
+
+    public List<User> getAllAdmins() throws SQLException {
+        String sql = "SELECT * FROM users WHERE isAdmin = true";
+        List<User> admins = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                admins.add(mapResultSetToUser(rs));
+            }
+        }
+        return admins;
     }
 
 }

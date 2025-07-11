@@ -10,6 +10,7 @@ public class User {
         private String imageURL;
         private String bio;
         private String salt;
+        private boolean isAdmin;
 
         public User() { }
 
@@ -24,6 +25,21 @@ public class User {
             this.imageURL = imageURL;
             this.bio = bio;
             this.salt = salt;
+            this.isAdmin = false;
+        }
+
+        public User(int id, String hashPassword, String firstName, String lastName,
+                    String userName, String email, String imageURL, String bio,String salt, boolean isAdmin) {
+            this.id = id;
+            this.hashPassword = hashPassword;
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.userName = userName;
+            this.email = email;
+            this.imageURL = imageURL;
+            this.bio = bio;
+            this.salt = salt;
+            this.isAdmin = isAdmin;
         }
 
         public void setSalt(String salt) { this.salt = salt; }
@@ -92,6 +108,14 @@ public class User {
 
         public void setBio(String bio) {
             this.bio = bio;
+        }
+
+        public boolean isAdmin() {
+            return isAdmin;
+        }
+
+        public void setAdmin(boolean admin) {
+            isAdmin = admin;
         }
 
 }
