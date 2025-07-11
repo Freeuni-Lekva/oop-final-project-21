@@ -77,8 +77,7 @@ public class UserDTO {
         this.bio = bio;
     }
 
-    public boolean isAdmin() {return isAdmin;}
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
+    public boolean isAdmin() {
+        return isAdmin;
     }
 }
