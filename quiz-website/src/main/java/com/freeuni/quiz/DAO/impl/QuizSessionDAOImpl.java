@@ -1,16 +1,16 @@
-package com.freeuni.quiz.repository.impl;
+package com.freeuni.quiz.DAO.impl;
 
 import com.freeuni.quiz.bean.QuizSession;
-import com.freeuni.quiz.repository.QuizSessionRepository;
+import com.freeuni.quiz.DAO.QuizSessionDAO;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Optional;
 
-public class QuizSessionRepositoryImpl implements QuizSessionRepository {
+public class QuizSessionDAOImpl implements QuizSessionDAO {
     private final DataSource dataSource;
 
-    public QuizSessionRepositoryImpl(DataSource dataSource) {
+    public QuizSessionDAOImpl(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

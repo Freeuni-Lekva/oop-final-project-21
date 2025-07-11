@@ -1,16 +1,16 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.QuizCompletionDAO;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
 public class QuizMachineCriteria implements AchievementCriteria {
-    private final QuizCompletionRepository quizCompletionRepository;
+    private final QuizCompletionDAO quizCompletionRepository;
 
     public QuizMachineCriteria(DataSource dataSource) {
-        this.quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
+        this.quizCompletionRepository = new QuizCompletionDAOImpl(dataSource);
     }
 
     @Override

@@ -1,10 +1,10 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.QuizCompletion;
 import java.util.List;
 import java.util.Map;
 
-public interface HistoryRepository {
+public interface HistoryDAO {
 
     List<QuizCompletion> getUserCompletions(int userId);
 

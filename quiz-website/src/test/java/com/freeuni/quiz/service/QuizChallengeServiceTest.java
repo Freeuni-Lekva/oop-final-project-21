@@ -5,10 +5,9 @@ import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.QuizChallenge;
 import com.freeuni.quiz.bean.QuizCompletion;
-import com.freeuni.quiz.repository.QuizChallengeRepository;
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.impl.QuizChallengeRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.QuizChallengeDAO;
+import com.freeuni.quiz.DAO.impl.QuizChallengeDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +34,7 @@ class QuizChallengeServiceTest {
     private DataSource dataSource;
 
     @Mock
-    private QuizChallengeRepository mockRepository;
+    private QuizChallengeDAO mockRepository;
 
     @Mock
     private UserService userService;
@@ -73,10 +72,10 @@ class QuizChallengeServiceTest {
 
     @Test
     void constructor_ValidDataSource_ShouldCreateService() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class);
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class);
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             QuizChallengeService service = new QuizChallengeService(dataSource);
 
@@ -88,13 +87,13 @@ class QuizChallengeServiceTest {
 
     @Test
     void sendChallenge_ValidParameters_ShouldReturnTrue() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.challengeExists(100, 200, 300L)).thenReturn(false);
                          when(mock.createChallenge(any(QuizChallenge.class))).thenReturn(true);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -106,12 +105,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void sendChallenge_ChallengeAlreadyExists_ShouldReturnFalse() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.challengeExists(100, 200, 300L)).thenReturn(true);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -123,12 +122,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getReceivedChallenges_ValidUserId_ShouldReturnChallenges() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          when(mock.findUserCompletionForQuiz(any(), any())).thenReturn(Optional.empty());
                      })) {
 
@@ -146,12 +145,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getReceivedChallenges_EmptyList_ShouldReturnEmptyList() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.emptyList());
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -163,12 +162,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getSentChallenges_ValidUserId_ShouldReturnChallenges() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesSentByUser(100)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          when(mock.findUserCompletionForQuiz(any(), any())).thenReturn(Optional.empty());
                      })) {
 
@@ -186,12 +185,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getChallengeById_ExistingChallenge_ShouldReturnChallenge() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengeById(1L)).thenReturn(Optional.of(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          when(mock.findUserCompletionForQuiz(any(), any())).thenReturn(Optional.empty());
                      })) {
 
@@ -209,12 +208,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getChallengeById_NonExistingChallenge_ShouldReturnEmpty() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengeById(999L)).thenReturn(Optional.empty());
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -226,12 +225,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void acceptChallenge_ValidId_ShouldReturnTrue() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.updateChallengeStatus(1L, "ACCEPTED")).thenReturn(true);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -243,12 +242,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void acceptChallenge_InvalidId_ShouldReturnFalse() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.updateChallengeStatus(999L, "ACCEPTED")).thenReturn(false);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -260,12 +259,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void declineChallenge_ValidId_ShouldReturnTrue() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.updateChallengeStatus(1L, "DECLINED")).thenReturn(true);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -277,12 +276,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void completeChallenge_ValidId_ShouldReturnTrue() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.updateChallengeStatus(1L, "COMPLETED")).thenReturn(true);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -294,12 +293,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void deleteChallenge_ValidId_ShouldReturnTrue() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.deleteChallenge(1L)).thenReturn(true);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -311,12 +310,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void deleteChallenge_InvalidId_ShouldReturnFalse() {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.deleteChallenge(999L)).thenReturn(false);
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -328,12 +327,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void convertToDTO_UserNotFound_ShouldReturnEmptyList() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -349,12 +348,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void convertToDTO_QuizNotFound_ShouldReturnEmptyList() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -370,12 +369,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void convertToDTO_SQLException_ShouldReturnEmptyList() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class)) {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class)) {
 
             challengeService = new QuizChallengeService(dataSource);
 
@@ -399,12 +398,12 @@ class QuizChallengeServiceTest {
         Quiz quiz2 = new Quiz();
         quiz2.setId(301L);
 
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Arrays.asList(testChallenge, challenge2));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          when(mock.findUserCompletionForQuiz(any(), any())).thenReturn(Optional.empty());
                      })) {
 
@@ -424,12 +423,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void convertToDTO_WithScoreData_ShouldIncludeScores() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          QuizCompletion challengerScore = createMockCompletion(100L, 300L, 8.5, 10.0);
                          when(mock.findUserCompletionForQuiz(100L, 300L)).thenReturn(Optional.of(challengerScore));
                          
@@ -457,12 +456,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void convertToDTO_WithPartialScoreData_ShouldIncludeOnlyAvailableScores() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          QuizCompletion challengerScore = createMockCompletion(100L, 300L, 9.0, 10.0);
                          when(mock.findUserCompletionForQuiz(100L, 300L)).thenReturn(Optional.of(challengerScore));
                          when(mock.findUserCompletionForQuiz(200L, 300L)).thenReturn(Optional.empty());
@@ -487,12 +486,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void convertToDTO_WithNoScoreData_ShouldHaveNullScores() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesReceivedByUser(200)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          when(mock.findUserCompletionForQuiz(100L, 300L)).thenReturn(Optional.empty());
                          when(mock.findUserCompletionForQuiz(200L, 300L)).thenReturn(Optional.empty());
                      })) {
@@ -515,12 +514,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getSentChallenges_WithScoreData_ShouldIncludeScores() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengesSentByUser(100)).thenReturn(Collections.singletonList(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          QuizCompletion challengerScore = createMockCompletion(100L, 300L, 9.5, 10.0);
                          when(mock.findUserCompletionForQuiz(100L, 300L)).thenReturn(Optional.of(challengerScore));
                          
@@ -548,12 +547,12 @@ class QuizChallengeServiceTest {
 
     @Test
     void getChallengeById_WithScoreData_ShouldIncludeScores() throws SQLException {
-        try (MockedConstruction<QuizChallengeRepositoryImpl> challengeRepoConstruction =
-                     mockConstruction(QuizChallengeRepositoryImpl.class, (mock, context) -> {
+        try (MockedConstruction<QuizChallengeDAOImpl> challengeRepoConstruction =
+                     mockConstruction(QuizChallengeDAOImpl.class, (mock, context) -> {
                          when(mock.getChallengeById(1L)).thenReturn(Optional.of(testChallenge));
                      });
-             MockedConstruction<QuizCompletionRepositoryImpl> completionRepoConstruction =
-                     mockConstruction(QuizCompletionRepositoryImpl.class, (mock, context) -> {
+             MockedConstruction<QuizCompletionDAOImpl> completionRepoConstruction =
+                     mockConstruction(QuizCompletionDAOImpl.class, (mock, context) -> {
                          QuizCompletion challengerScore = createMockCompletion(100L, 300L, 8.0, 10.0);
                          when(mock.findUserCompletionForQuiz(100L, 300L)).thenReturn(Optional.of(challengerScore));
                          

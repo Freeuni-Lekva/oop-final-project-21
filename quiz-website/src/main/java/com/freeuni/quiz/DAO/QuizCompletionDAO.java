@@ -1,4 +1,4 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.QuizCompletion;
 
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface QuizCompletionRepository {
+public interface QuizCompletionDAO {
 
     Long saveCompletion(QuizCompletion completion);
 

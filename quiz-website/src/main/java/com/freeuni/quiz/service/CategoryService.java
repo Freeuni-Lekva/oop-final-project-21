@@ -1,75 +1,75 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.Category;
-import com.freeuni.quiz.repository.CategoryRepository;
-import com.freeuni.quiz.repository.impl.CategoryRepositoryImpl;
+import com.freeuni.quiz.DAO.CategoryDAO;
+import com.freeuni.quiz.DAO.impl.CategoryDAOImpl;
 
 import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
 public class CategoryService {
-    private final CategoryRepository categoryRepository;
+    private final CategoryDAO categoryDAO;
 
     public CategoryService(DataSource dataSource) {
-        this.categoryRepository = new CategoryRepositoryImpl(dataSource);
+        this.categoryDAO = new CategoryDAOImpl(dataSource);
     }
 
     public Long createCategory(Category category) {
         validateCategoryData(category);
         
-        if (categoryRepository.existsByName(category.getCategoryName())) {
+        if (categoryDAO.existsByName(category.getCategoryName())) {
             throw new IllegalArgumentException("Category name already exists");
         }
         
         category.setActive(true);
         
-        return categoryRepository.saveCategory(category);
+        return categoryDAO.saveCategory(category);
     }
 
     public Optional<Category> getCategoryById(Long categoryId) {
-        return categoryRepository.findById(categoryId);
+        return categoryDAO.findById(categoryId);
     }
 
     public List<Category> getAllActiveCategories() {
-        return categoryRepository.findAllActive();
+        return categoryDAO.findAllActive();
     }
 
     public List<Category> searchCategoriesByName(String searchTerm) {
-        return categoryRepository.searchByName(searchTerm);
+        return categoryDAO.searchByName(searchTerm);
     }
 
     public boolean updateCategory(Category category) {
         validateCategoryData(category);
         
-        Optional<Category> existingCategoryOpt = categoryRepository.findById(category.getId());
+        Optional<Category> existingCategoryOpt = categoryDAO.findById(category.getId());
         if (existingCategoryOpt.isPresent()) {
             Category existingCategory = existingCategoryOpt.get();
             if (!existingCategory.getCategoryName().equals(category.getCategoryName()) &&
-                categoryRepository.existsByName(category.getCategoryName())) {
+                categoryDAO.existsByName(category.getCategoryName())) {
                 throw new IllegalArgumentException("Category name already exists");
             }
         }
         
-        return categoryRepository.updateCategory(category);
+        return categoryDAO.updateCategory(category);
     }
 
     public boolean deleteCategory(Long categoryId) {
-        Optional<Category> categoryOpt = categoryRepository.findById(categoryId);
+        Optional<Category> categoryOpt = categoryDAO.findById(categoryId);
         if (categoryOpt.isPresent()) {
             Category category = categoryOpt.get();
             category.setActive(false);
-            return categoryRepository.updateCategory(category);
+            return categoryDAO.updateCategory(category);
         }
         return false;
     }
 
     public boolean hardDeleteCategory(Long categoryId) {
-        return categoryRepository.deleteCategory(categoryId);
+        return categoryDAO.deleteCategory(categoryId);
     }
 
     public boolean categoryExists(String categoryName) {
-        return categoryRepository.existsByName(categoryName);
+        return categoryDAO.existsByName(categoryName);
     }
 
     private void validateCategoryData(Category category) {

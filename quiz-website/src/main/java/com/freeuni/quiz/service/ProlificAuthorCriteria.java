@@ -1,16 +1,16 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.repository.QuizRepository;
-import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
+import com.freeuni.quiz.DAO.QuizDAO;
+import com.freeuni.quiz.DAO.impl.QuizDAOImpl;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
 public class ProlificAuthorCriteria implements AchievementCriteria {
-    private final QuizRepository quizRepository;
+    private final QuizDAO quizRepository;
 
     public ProlificAuthorCriteria(DataSource dataSource) {
-        this.quizRepository = new QuizRepositoryImpl(dataSource);
+        this.quizRepository = new QuizDAOImpl(dataSource);
     }
 
     @Override

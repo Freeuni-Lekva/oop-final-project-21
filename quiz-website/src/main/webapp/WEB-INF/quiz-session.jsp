@@ -326,9 +326,24 @@
                         
                         <% } else if (currentQuestion.getQuestionType() == QuestionType.IMAGE) { %>
                             <div class="image-question">
-                                <% // Note: Image URL handling would need to be implemented based on question data structure %>
+                                <%
+                                    if (currentQuestion.getQuestionHandler() != null) {
+                                        java.util.Map<String, Object> viewData = currentQuestion.getQuestionHandler().getViewData();
+                                        String imageUrl = (String) viewData.get("imageUrl");
+                                        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                                %>
+                                    <img src="<%= imageUrl %>" alt="Question Image" 
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display:none; background-color: #4b3d6e; padding: 20px; border-radius: 10px; text-align: center; color: #b19cd9;">
+                                        <p>⚠️ Failed to load image</p>
+                                        <small><%= imageUrl %></small>
+                                    </div>
+                                <%
+                                        }
+                                    }
+                                %>
                                 <textarea name="answer" class="text-answer" rows="2" 
-                                          placeholder="What do you see in this image?"></textarea>
+                                          placeholder="Enter your answer here..."></textarea>
                             </div>
                         <% } %>
                         

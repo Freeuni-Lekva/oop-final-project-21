@@ -1,11 +1,11 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.QuizQuestionMapping;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface QuizQuestionMappingRepository {
+public interface QuizQuestionMappingDAO {
 
     boolean addQuestionToQuiz(Long questionId, Long quizId, Long sequenceOrder);
 

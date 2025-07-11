@@ -2,8 +2,8 @@ package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.bean.Question;
 import com.freeuni.quiz.bean.QuestionType;
-import com.freeuni.quiz.repository.QuestionRepository;
-import com.freeuni.quiz.repository.impl.QuestionRepositoryImpl;
+import com.freeuni.quiz.DAO.QuestionDAO;
+import com.freeuni.quiz.DAO.impl.QuestionDAOImpl;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public class QuestionService {
-    private final QuestionRepository questionRepository;
+    private final QuestionDAO questionDAO;
 
     public QuestionService(DataSource dataSource) {
-        this.questionRepository = new QuestionRepositoryImpl(dataSource);
+        this.questionDAO = new QuestionDAOImpl(dataSource);
     }
 
     public Long createQuestion(Question question) {
@@ -22,45 +22,45 @@ public class QuestionService {
         
         validateQuestionData(question);
         
-        return questionRepository.saveQuestion(question);
+        return questionDAO.saveQuestion(question);
     }
 
     public Optional<Question> getQuestionById(Long questionId) {
-        return questionRepository.findById(questionId);
+        return questionDAO.findById(questionId);
     }
 
     public List<Question> getQuestionsByAuthor(Long authorId, int page, int size) {
         int offset = page * size;
-        return questionRepository.findByAuthor(authorId, offset, size);
+        return questionDAO.findByAuthor(authorId, offset, size);
     }
 
     public List<Question> getQuestionsByCategory(Long categoryId, int page, int size) {
         int offset = page * size;
-        return questionRepository.findByCategory(categoryId, offset, size);
+        return questionDAO.findByCategory(categoryId, offset, size);
     }
 
     public List<Question> getQuestionsByType(QuestionType type, int page, int size) {
         int offset = page * size;
-        return questionRepository.findByType(type, offset, size);
+        return questionDAO.findByType(type, offset, size);
     }
 
     public List<Question> searchQuestionsByTitle(String searchTerm, int page, int size) {
         int offset = page * size;
-        return questionRepository.searchByTitle(searchTerm, offset, size);
+        return questionDAO.searchByTitle(searchTerm, offset, size);
     }
 
     public boolean updateQuestion(Question question) {
         validateQuestionData(question);
         
-        return questionRepository.updateQuestion(question);
+        return questionDAO.updateQuestion(question);
     }
 
     public boolean deleteQuestion(Long questionId) {
-        return questionRepository.deleteQuestion(questionId);
+        return questionDAO.deleteQuestion(questionId);
     }
 
     public boolean isQuestionOwner(Long questionId, Long userId) {
-        Optional<Question> questionOpt = questionRepository.findById(questionId);
+        Optional<Question> questionOpt = questionDAO.findById(questionId);
         return questionOpt.isPresent() && questionOpt.get().getAuthorUserId() == userId;
     }
 

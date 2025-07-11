@@ -5,10 +5,10 @@ import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.QuizChallenge;
 import com.freeuni.quiz.bean.QuizCompletion;
-import com.freeuni.quiz.repository.QuizChallengeRepository;
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.impl.QuizChallengeRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.QuizChallengeDAO;
+import com.freeuni.quiz.DAO.QuizCompletionDAO;
+import com.freeuni.quiz.DAO.impl.QuizChallengeDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -17,12 +17,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class QuizChallengeService {
-    private final QuizChallengeRepository challengeRepository;
-    private final QuizCompletionRepository completionRepository;
+    private final QuizChallengeDAO challengeRepository;
+    private final QuizCompletionDAO completionRepository;
 
     public QuizChallengeService(DataSource dataSource) {
-        this.challengeRepository = new QuizChallengeRepositoryImpl(dataSource);
-        this.completionRepository = new QuizCompletionRepositoryImpl(dataSource);
+        this.challengeRepository = new QuizChallengeDAOImpl(dataSource);
+        this.completionRepository = new QuizCompletionDAOImpl(dataSource);
     }
 
     public boolean sendChallenge(int challengerId, int challengedId, Long quizId, String message) {

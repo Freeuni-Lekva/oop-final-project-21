@@ -1,8 +1,8 @@
-package com.freeuni.quiz.repository.impl;
+package com.freeuni.quiz.DAO.impl;
 
 import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.DTO.PopularQuizDTO;
-import com.freeuni.quiz.repository.QuizRepository;
+import com.freeuni.quiz.DAO.QuizDAO;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class QuizRepositoryImpl implements QuizRepository {
+public class QuizDAOImpl implements QuizDAO {
     private final DataSource dataSource;
 
-    public QuizRepositoryImpl(DataSource dataSource) {
+    public QuizDAOImpl(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

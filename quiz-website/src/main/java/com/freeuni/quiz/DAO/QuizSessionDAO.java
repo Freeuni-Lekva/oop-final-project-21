@@ -1,10 +1,10 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.QuizSession;
 
 import java.util.Optional;
 
-public interface QuizSessionRepository {
+public interface QuizSessionDAO {
     boolean createSession(QuizSession session);
 
     Optional<QuizSession> findByParticipant(Long participantUserId);

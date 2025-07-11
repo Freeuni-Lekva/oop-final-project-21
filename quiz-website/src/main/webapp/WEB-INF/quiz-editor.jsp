@@ -302,7 +302,6 @@
                                         <p style="color: #b19cd9; font-size: 14px;">Points: <%= question.getPoints() %></p>
                                     </div>
                                     <div class="question-actions">
-                                        <button onclick="editQuestion(<%= question.getId() %>)" class="quiz-btn quiz-btn-outline">Edit</button>
                                         <button onclick="deleteQuestion(<%= question.getId() %>)" class="quiz-btn quiz-btn-danger">Delete</button>
                                     </div>
                                 </div>
@@ -381,6 +380,11 @@
                                     <label for="imageUrl">Image URL *</label>
                                     <input type="text" id="imageUrl" name="imageUrl" class="form-control" 
                                            placeholder="Enter image URL">
+                                </div>
+                                <div class="form-group">
+                                    <label for="expectedAnswer">Expected Answer *</label>
+                                    <textarea id="expectedAnswer" name="expectedAnswer" class="form-control" 
+                                              required rows="2" placeholder="Enter the expected answer for this image question"></textarea>
                                 </div>
                             </div>
                             
@@ -463,11 +467,6 @@
             document.querySelectorAll('.question-type-option').forEach(option => {
                 option.classList.remove('selected');
             });
-        }
-        
-        function editQuestion(questionId) {
-            // TODO: Implement edit functionality
-            alert('Edit functionality to be implemented');
         }
         
         function deleteQuestion(questionId) {

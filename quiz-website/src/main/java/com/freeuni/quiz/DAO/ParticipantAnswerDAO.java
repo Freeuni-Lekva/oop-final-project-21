@@ -1,11 +1,11 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.ParticipantAnswer;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ParticipantAnswerRepository {
+public interface ParticipantAnswerDAO {
 
     boolean saveAnswer(ParticipantAnswer answer);
 
