@@ -113,9 +113,6 @@
             <!-- Search and Filter Section -->
             <div class="quiz-search">
                 <form method="get" action="quiz-browser" class="quiz-search-form">
-                    <input type="text" name="search" placeholder="Search quizzes..." 
-                           value="${param.search}" id="searchInput">
-                    
                     <select name="categoryId" id="categoryFilter">
                         <option value="">All Categories</option>
                         <c:forEach items="${categories}" var="category">
@@ -126,7 +123,6 @@
                         </c:forEach>
                     </select>
                     
-                    <button type="submit" class="quiz-btn quiz-btn-primary">Search</button>
                     <a href="quiz-browser" class="quiz-btn quiz-btn-outline">Clear</a>
                 </form>
             </div>
@@ -208,14 +204,14 @@
             <!-- Pagination -->
             <div class="pagination">
                 <c:if test="${currentPage > 0}">
-                    <a href="quiz-browser?page=${currentPage - 1}&search=${param.search}&categoryId=${param.categoryId}" 
+                    <a href="quiz-browser?page=${currentPage - 1}&categoryId=${param.categoryId}" 
                        class="quiz-btn quiz-btn-outline">← Previous</a>
                 </c:if>
                 
                 <span class="current-page">Page ${currentPage + 1}</span>
                 
                 <c:if test="${not empty quizzes and quizzes.size() >= 10}">
-                    <a href="quiz-browser?page=${currentPage + 1}&search=${param.search}&categoryId=${param.categoryId}" 
+                    <a href="quiz-browser?page=${currentPage + 1}&categoryId=${param.categoryId}" 
                        class="quiz-btn quiz-btn-outline">Next →</a>
                 </c:if>
             </div>
@@ -223,24 +219,9 @@
     </div>
     
     <script>
-        // Enhanced search functionality
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.querySelector('.quiz-search-form').submit();
-            }
-        });
-        
-        // Auto-search on category change
+        // Auto-submit on category change
         document.getElementById('categoryFilter').addEventListener('change', function() {
             document.querySelector('.quiz-search-form').submit();
-        });
-        
-        // Add loading state to search button
-        document.querySelector('.quiz-search-form').addEventListener('submit', function() {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.textContent = 'Searching...';
-            submitBtn.disabled = true;
         });
         
         // Add hover effects to quiz cards

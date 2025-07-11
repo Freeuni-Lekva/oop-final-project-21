@@ -1,19 +1,18 @@
-package com.freeuni.quiz.repository.impl;
+package com.freeuni.quiz.DAO.impl;
 
 import com.freeuni.quiz.bean.QuizCompletion;
-import com.freeuni.quiz.repository.HistoryRepository;
+import com.freeuni.quiz.DAO.HistoryDAO;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.*;
 
-public class HistoryRepositoryImpl implements HistoryRepository {
+public class HistoryDAOImpl implements HistoryDAO {
 
     private final DataSource dataSource;
 
-    public HistoryRepositoryImpl(DataSource dataSource) {
+    public HistoryDAOImpl(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

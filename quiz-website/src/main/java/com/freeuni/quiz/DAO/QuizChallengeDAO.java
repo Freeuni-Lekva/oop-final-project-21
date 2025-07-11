@@ -1,10 +1,10 @@
-package com.freeuni.quiz.repository;
+package com.freeuni.quiz.DAO;
 
 import com.freeuni.quiz.bean.QuizChallenge;
 import java.util.List;
 import java.util.Optional;
 
-public interface QuizChallengeRepository {
+public interface QuizChallengeDAO {
     boolean createChallenge(QuizChallenge challenge);
 
     List<QuizChallenge> getChallengesReceivedByUser(int userId);

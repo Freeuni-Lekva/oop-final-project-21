@@ -91,14 +91,10 @@
         <div class="quiz-container">
             <h2>Browse Quizzes</h2>
             
-            <!-- Search and Filter Section -->
+            <!-- Filter Section -->
             <div class="quiz-card">
-                <form method="get" action="quiz-browser" style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <input type="text" name="search" placeholder="Search quizzes..." 
-                           value="<%= searchQuery %>" 
-                           class="form-control" style="flex: 1; min-width: 250px;">
-                    
-                    <select name="categoryId" class="form-control" style="width: 200px;">
+                <form method="get" action="quiz-browser" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                    <select name="categoryId" class="form-control" style="width: 200px;" onchange="this.form.submit()">
                         <option value="">All Categories</option>
                         <% 
                             if (categories != null) {
@@ -114,7 +110,7 @@
                         %>
                     </select>
                     
-                    <button type="submit" class="quiz-btn quiz-btn-primary">Search</button>
+                    <a href="quiz-browser" class="quiz-btn quiz-btn-outline">Clear</a>
                 </form>
             </div>
             

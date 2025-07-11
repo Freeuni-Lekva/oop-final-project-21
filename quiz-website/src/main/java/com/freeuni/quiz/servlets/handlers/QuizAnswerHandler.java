@@ -3,8 +3,8 @@ package com.freeuni.quiz.servlets.handlers;
 import com.freeuni.quiz.bean.*;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.service.*;
-import com.freeuni.quiz.repository.impl.ParticipantAnswerRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.impl.ParticipantAnswerDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,12 +19,12 @@ import java.util.HashMap;
 public class QuizAnswerHandler {
 
     private final QuizService quizService;
-    private final ParticipantAnswerRepositoryImpl participantAnswerRepository;
-    private final QuizCompletionRepositoryImpl quizCompletionRepository;
+    private final ParticipantAnswerDAOImpl participantAnswerRepository;
+    private final QuizCompletionDAOImpl quizCompletionRepository;
 
     public QuizAnswerHandler(QuizService quizService, 
-                            ParticipantAnswerRepositoryImpl participantAnswerRepository,
-                            QuizCompletionRepositoryImpl quizCompletionRepository) {
+                            ParticipantAnswerDAOImpl participantAnswerRepository,
+                            QuizCompletionDAOImpl quizCompletionRepository) {
         this.quizService = quizService;
         this.participantAnswerRepository = participantAnswerRepository;
         this.quizCompletionRepository = quizCompletionRepository;

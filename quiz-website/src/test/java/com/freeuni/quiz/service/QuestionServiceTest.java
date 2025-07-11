@@ -61,6 +61,7 @@ class QuestionServiceTest {
                     "question_data MEDIUMBLOB NOT NULL," +
                     "question_title VARCHAR(128)," +
                     "question_type ENUM('TEXT', 'MULTIPLE_CHOICE', 'IMAGE') DEFAULT 'TEXT'," +
+                    "points DOUBLE DEFAULT 10," +
                     "FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE CASCADE," +
                     "FOREIGN KEY (category_id) REFERENCES quiz_categories(id) ON DELETE CASCADE" +
                     ")");
@@ -89,6 +90,7 @@ class QuestionServiceTest {
         testQuestion.setQuestionTitle("Math Question");
         testQuestion.setQuestionType(QuestionType.TEXT);
         testQuestion.setQuestionHandler(testHandler);
+        testQuestion.setPoints(10.0);
     }
 
     @Test
@@ -163,6 +165,7 @@ class QuestionServiceTest {
 
         assertTrue(result.isPresent());
         assertEquals("Math Question", result.get().getQuestionTitle());
+        assertEquals(10.0, result.get().getPoints());
     }
 
     @Test
@@ -208,7 +211,7 @@ class QuestionServiceTest {
         List<Question> result = questionService.getQuestionsByType(QuestionType.TEXT, 0, 15);
 
         assertEquals(1, result.size());
-        assertEquals("Math Question", result.get(0).getQuestionTitle());
+        assertEquals("Math Question", result.getFirst().getQuestionTitle());
     }
 
     @Test
@@ -300,6 +303,32 @@ class QuestionServiceTest {
 
         assertNotNull(testQuestion.getCreatedAt());
         assertTrue(testQuestion.getCreatedAt().isAfter(beforeCreation.minusSeconds(1)));
+    }
+
+    @Test
+    void createQuestion_WithCustomPoints_ShouldSaveAndRetrieveCorrectly() {
+        testQuestion.setPoints(25.5);
+        
+        Long questionId = questionService.createQuestion(testQuestion);
+        Optional<Question> result = questionService.getQuestionById(questionId);
+        
+        assertTrue(result.isPresent());
+        assertEquals(25.5, result.get().getPoints());
+    }
+
+    @Test
+    void updateQuestion_WithNewPoints_ShouldUpdateCorrectly() {
+        Long questionId = questionService.createQuestion(testQuestion);
+        testQuestion.setId(questionId);
+        testQuestion.setPoints(15.0);
+        
+        boolean result = questionService.updateQuestion(testQuestion);
+        
+        assertTrue(result);
+        
+        Optional<Question> updatedQuestion = questionService.getQuestionById(questionId);
+        assertTrue(updatedQuestion.isPresent());
+        assertEquals(15.0, updatedQuestion.get().getPoints());
     }
 
     @Test

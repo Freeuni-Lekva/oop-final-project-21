@@ -4,14 +4,14 @@ import com.freeuni.quiz.bean.Quiz;
 import com.freeuni.quiz.bean.Question;
 import com.freeuni.quiz.bean.QuizCompletion;
 import com.freeuni.quiz.DTO.PopularQuizDTO;
-import com.freeuni.quiz.repository.QuestionRepository;
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.QuizQuestionMappingRepository;
-import com.freeuni.quiz.repository.QuizRepository;
-import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuestionRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizQuestionMappingRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.QuestionDAO;
+import com.freeuni.quiz.DAO.QuizCompletionDAO;
+import com.freeuni.quiz.DAO.QuizQuestionMappingDAO;
+import com.freeuni.quiz.DAO.QuizDAO;
+import com.freeuni.quiz.DAO.impl.QuizDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuestionDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizQuestionMappingDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -22,16 +22,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class QuizService {
-    private final QuizRepository quizRepository;
-    private final QuestionRepository questionRepository;
-    private final QuizQuestionMappingRepository quizQuestionMappingRepository;
-    private final QuizCompletionRepository quizCompletionRepository;
+    private final QuizDAO quizRepository;
+    private final QuestionDAO questionDAO;
+    private final QuizQuestionMappingDAO quizQuestionMappingRepository;
+    private final QuizCompletionDAO quizCompletionRepository;
 
     public QuizService(DataSource dataSource) {
-        this.quizRepository = new QuizRepositoryImpl(dataSource);
-        this.questionRepository = new QuestionRepositoryImpl(dataSource);
-        this.quizQuestionMappingRepository = new QuizQuestionMappingRepositoryImpl(dataSource);
-        this.quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
+        this.quizRepository = new QuizDAOImpl(dataSource);
+        this.questionDAO = new QuestionDAOImpl(dataSource);
+        this.quizQuestionMappingRepository = new QuizQuestionMappingDAOImpl(dataSource);
+        this.quizCompletionRepository = new QuizCompletionDAOImpl(dataSource);
     }
 
     public Long createQuiz(Quiz quiz) {
@@ -78,7 +78,7 @@ public class QuizService {
             return false;
         }
         
-        Optional<Question> questionOpt = questionRepository.findById(questionId);
+        Optional<Question> questionOpt = questionDAO.findById(questionId);
         if (questionOpt.isEmpty()) {
             return false;
         }
@@ -102,7 +102,7 @@ public class QuizService {
     public List<Question> getQuizQuestions(Long quizId) {
         List<Long> questionIds = quizQuestionMappingRepository.getQuestionIdsByQuizOrdered(quizId);
         return questionIds.stream()
-            .map(questionRepository::findById)
+            .map(questionDAO::findById)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toList());

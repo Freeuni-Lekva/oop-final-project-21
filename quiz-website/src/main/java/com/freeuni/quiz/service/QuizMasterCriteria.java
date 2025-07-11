@@ -1,20 +1,20 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.repository.QuizCompletionRepository;
-import com.freeuni.quiz.repository.QuizRepository;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizRepositoryImpl;
+import com.freeuni.quiz.DAO.QuizCompletionDAO;
+import com.freeuni.quiz.DAO.QuizDAO;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizDAOImpl;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
 public class QuizMasterCriteria implements AchievementCriteria {
-    private final QuizRepository quizRepository;
-    private final QuizCompletionRepository quizCompletionRepository;
+    private final QuizDAO quizRepository;
+    private final QuizCompletionDAO quizCompletionRepository;
 
     public QuizMasterCriteria(DataSource dataSource) {
-        this.quizRepository = new QuizRepositoryImpl(dataSource);
-        this.quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
+        this.quizRepository = new QuizDAOImpl(dataSource);
+        this.quizCompletionRepository = new QuizCompletionDAOImpl(dataSource);
     }
 
     @Override

@@ -3,8 +3,8 @@ package com.freeuni.quiz.servlets;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.servlets.handlers.QuizSessionHandler;
 import com.freeuni.quiz.servlets.handlers.QuizAnswerHandler;
-import com.freeuni.quiz.repository.impl.ParticipantAnswerRepositoryImpl;
-import com.freeuni.quiz.repository.impl.QuizCompletionRepositoryImpl;
+import com.freeuni.quiz.DAO.impl.ParticipantAnswerDAOImpl;
+import com.freeuni.quiz.DAO.impl.QuizCompletionDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,8 +23,8 @@ public class QuizSessionServlet extends BaseServlet {
     public void init() throws ServletException {
         super.init();
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        ParticipantAnswerRepositoryImpl participantAnswerRepository = new ParticipantAnswerRepositoryImpl(dataSource);
-        QuizCompletionRepositoryImpl quizCompletionRepository = new QuizCompletionRepositoryImpl(dataSource);
+        ParticipantAnswerDAOImpl participantAnswerRepository = new ParticipantAnswerDAOImpl(dataSource);
+        QuizCompletionDAOImpl quizCompletionRepository = new QuizCompletionDAOImpl(dataSource);
         
         this.sessionHandler = new QuizSessionHandler(quizService, categoryService);
         this.answerHandler = new QuizAnswerHandler(quizService, participantAnswerRepository, quizCompletionRepository);
