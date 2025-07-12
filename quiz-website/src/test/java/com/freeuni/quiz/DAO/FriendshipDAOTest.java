@@ -1,5 +1,6 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DAO.impl.FriendshipDAOImpl;
 import com.freeuni.quiz.bean.Friendship;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.*;
@@ -11,7 +12,7 @@ import static org.junit.Assert.*;
 
 public class FriendshipDAOTest {
     private static BasicDataSource dataSource;
-    private FriendshipDAO friendshipDAO;
+    private FriendshipDAOImpl friendshipDAOImpl;
 
 
     @BeforeClass
@@ -33,7 +34,7 @@ public class FriendshipDAOTest {
 
     @Before
     public void setUp() throws SQLException {
-        friendshipDAO = new FriendshipDAO(dataSource);
+        friendshipDAOImpl = new FriendshipDAOImpl(dataSource);
 
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()) {
@@ -48,72 +49,72 @@ public class FriendshipDAOTest {
     @Test
     public void testAddAndFindById() throws SQLException {
         Friendship friendship = createSampleFriendship();
-        boolean added = friendshipDAO.addFriendship(friendship);
+        boolean added = friendshipDAOImpl.addFriendship(friendship);
         assertTrue(added);
         assertTrue(friendship.getId() > 0);
 
-        Friendship fetched = friendshipDAO.findById(friendship.getId());
+        Friendship fetched = friendshipDAOImpl.findById(friendship.getId());
         assertNotNull(fetched);
         assertEquals(1, fetched.getFriendSenderId());
         assertEquals(2, fetched.getFriendReceiverId());
 
-        assertNull(friendshipDAO.findById(999));
+        assertNull(friendshipDAOImpl.findById(999));
     }
 
     @Test
     public void testFindAll() throws SQLException {
-        friendshipDAO.addFriendship(new Friendship(1, 2));
-        friendshipDAO.addFriendship(new Friendship(3, 4));
+        friendshipDAOImpl.addFriendship(new Friendship(1, 2));
+        friendshipDAOImpl.addFriendship(new Friendship(3, 4));
 
-        List<Friendship> all = friendshipDAO.findAll();
+        List<Friendship> all = friendshipDAOImpl.findAll();
         assertEquals(2, all.size());
     }
 
     @Test
     public void testDeleteFriendship() throws SQLException {
         Friendship friendship = createSampleFriendship();
-        friendshipDAO.addFriendship(friendship);
+        friendshipDAOImpl.addFriendship(friendship);
 
-        boolean deleted = friendshipDAO.deleteFriendship(friendship.getId());
+        boolean deleted = friendshipDAOImpl.deleteFriendship(friendship.getId());
         assertTrue(deleted);
 
-        assertNull(friendshipDAO.findById(friendship.getId()));
-        assertFalse(friendshipDAO.deleteFriendship(999));
+        assertNull(friendshipDAOImpl.findById(friendship.getId()));
+        assertFalse(friendshipDAOImpl.deleteFriendship(999));
     }
 
     @Test
     public void testUpdateFriendship() throws SQLException {
         Friendship friendship = createSampleFriendship();
-        friendshipDAO.addFriendship(friendship);
+        friendshipDAOImpl.addFriendship(friendship);
 
         friendship.setFriendSenderId(10);
         friendship.setFriendReceiverId(20);
-        boolean updated = friendshipDAO.updateFriendship(friendship);
+        boolean updated = friendshipDAOImpl.updateFriendship(friendship);
         assertTrue(updated);
 
-        Friendship updatedFriendship = friendshipDAO.findById(friendship.getId());
+        Friendship updatedFriendship = friendshipDAOImpl.findById(friendship.getId());
         assertEquals(10, updatedFriendship.getFriendSenderId());
         assertEquals(20, updatedFriendship.getFriendReceiverId());
 
         friendship.setId(999);
-        assertFalse(friendshipDAO.updateFriendship(friendship));
+        assertFalse(friendshipDAOImpl.updateFriendship(friendship));
     }
 
     @Test
     public void testExists() throws SQLException {
-        friendshipDAO.addFriendship(new Friendship(1, 2));
+        friendshipDAOImpl.addFriendship(new Friendship(1, 2));
 
-        assertTrue(friendshipDAO.exists(1, 2));
-        assertTrue(friendshipDAO.exists(2, 1));
-        assertFalse(friendshipDAO.exists(1, 3));
+        assertTrue(friendshipDAOImpl.exists(1, 2));
+        assertTrue(friendshipDAOImpl.exists(2, 1));
+        assertFalse(friendshipDAOImpl.exists(1, 3));
     }
 
     @Test
     public void testFindFriendIdsByUserId() throws SQLException {
-        friendshipDAO.addFriendship(new Friendship(1, 2));
-        friendshipDAO.addFriendship(new Friendship(3, 1));
+        friendshipDAOImpl.addFriendship(new Friendship(1, 2));
+        friendshipDAOImpl.addFriendship(new Friendship(3, 1));
 
-        List<Integer> friends = friendshipDAO.findFriendIdsByUserId(1);
+        List<Integer> friends = friendshipDAOImpl.findFriendIdsByUserId(1);
         assertEquals(2, friends.size());
         assertTrue(friends.contains(2));
         assertTrue(friends.contains(3));
@@ -122,15 +123,15 @@ public class FriendshipDAOTest {
     @Test
     public void testFindFriendshipId() throws SQLException {
         Friendship friendship = new Friendship(4, 5);
-        friendshipDAO.addFriendship(friendship);
+        friendshipDAOImpl.addFriendship(friendship);
 
-        Integer id = friendshipDAO.findFriendshipId(4, 5);
+        Integer id = friendshipDAOImpl.findFriendshipId(4, 5);
         assertNotNull(id);
         assertEquals((int)friendship.getId(), (int)id);
 
-        Integer reverseId = friendshipDAO.findFriendshipId(5, 4);
+        Integer reverseId = friendshipDAOImpl.findFriendshipId(5, 4);
         assertEquals(id, reverseId);
 
-        assertNull(friendshipDAO.findFriendshipId(1, 99));
+        assertNull(friendshipDAOImpl.findFriendshipId(1, 99));
     }
 }

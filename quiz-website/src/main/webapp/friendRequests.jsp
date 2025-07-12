@@ -12,6 +12,8 @@
         response.sendRedirect("login.jsp");
         return;
     }
+    
+    boolean isAdmin = user.isAdmin();
 %>
 <!DOCTYPE html>
 <html>
@@ -128,6 +130,7 @@
     <div class="username"><%= user.getUserName() %></div>
     
     <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+    <a href="#" onclick="showAnnouncements()">📢 Announcements</a>
     <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
     <a href="${pageContext.request.contextPath}/friendshipRequests" style="background-color: rgba(255, 255, 255, 0.2);">👋 Friend Requests</a>
     <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
@@ -137,6 +140,9 @@
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
     <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
     <a href="${pageContext.request.contextPath}/history">📊 History</a>
+    <% if (isAdmin) { %>
+    <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
+    <% } %>
 </div>
 
 <div class="main-content">

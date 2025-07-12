@@ -1,7 +1,7 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.DAO.AnnouncementDAO;
-import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.DTO.AnnouncementDTO;
 import com.freeuni.quiz.bean.Announcement;
 import com.freeuni.quiz.bean.User;
@@ -26,7 +26,7 @@ public class AnnouncementServiceTest {
     private AnnouncementDAO announcementDAO;
 
     @Mock
-    private UserDAO userDAO;
+    private UserDAOImpl userDAO;
 
     @Mock
     private DataSource dataSource;

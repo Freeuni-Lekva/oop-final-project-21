@@ -1,6 +1,6 @@
 package com.freeuni.quiz.servlets;
 
-import com.freeuni.quiz.DAO.MessageDAO;
+import com.freeuni.quiz.DAO.impl.MessageDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Message;
 import com.freeuni.quiz.util.LocalDateTimeAdapter;
@@ -20,7 +20,7 @@ import java.util.List;
 @WebServlet("/messages")
 public class MessagesServlet extends HttpServlet {
 
-    private MessageDAO messageDAO;
+    private MessageDAOImpl messageDAO;
     private Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .create();
@@ -28,7 +28,7 @@ public class MessagesServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        messageDAO = new MessageDAO(dataSource);
+        messageDAO = new MessageDAOImpl(dataSource);
     }
 
     @Override

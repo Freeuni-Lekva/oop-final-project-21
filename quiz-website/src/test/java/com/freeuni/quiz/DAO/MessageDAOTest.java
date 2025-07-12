@@ -1,5 +1,6 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DAO.impl.MessageDAOImpl;
 import com.freeuni.quiz.bean.Message;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
@@ -13,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class MessageDAOTest {
     private static BasicDataSource dataSource;
-    private MessageDAO messageDAO;
+    private MessageDAOImpl messageDAO;
 
     @BeforeClass
     public static void setupDatabase() throws SQLException {
@@ -39,7 +40,7 @@ public class MessageDAOTest {
 
     @Before
     public void setup() throws SQLException {
-        messageDAO = new MessageDAO(dataSource);
+        messageDAO = new MessageDAOImpl(dataSource);
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DELETE FROM messages");

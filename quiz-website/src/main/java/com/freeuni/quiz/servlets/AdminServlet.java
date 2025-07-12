@@ -1,6 +1,7 @@
 package com.freeuni.quiz.servlets;
 
 import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.DTO.AnnouncementDTO;
 import com.freeuni.quiz.bean.Category;
@@ -30,7 +31,7 @@ public class AdminServlet extends HttpServlet {
     public void init() throws ServletException {
         try {
             DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-            userDAO = new UserDAO(dataSource);
+            userDAO = new UserDAOImpl(dataSource);
             categoryService = new CategoryService(dataSource);
             announcementService = new AnnouncementService(dataSource);
         } catch (Exception e) {

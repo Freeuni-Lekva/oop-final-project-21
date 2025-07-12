@@ -1,6 +1,6 @@
 package com.freeuni.quiz.servlets;
 
-import com.freeuni.quiz.DAO.MessageDAO;
+import com.freeuni.quiz.DAO.impl.MessageDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Message;
 import com.freeuni.quiz.service.UserService;
@@ -17,13 +17,13 @@ import java.util.List;
 @WebServlet("/chat")
 public class ChatServlet extends HttpServlet {
 
-    private MessageDAO messageDAO;
+    private MessageDAOImpl messageDAO;
     private UserService userService;
 
     @Override
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        messageDAO = new MessageDAO(dataSource);
+        messageDAO = new MessageDAOImpl(dataSource);
         userService= new UserService(dataSource);
     }
 

@@ -1,6 +1,7 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.bean.Friendship;
 import com.freeuni.quiz.bean.User;
 import org.h2.jdbcx.JdbcDataSource;
@@ -54,7 +55,7 @@ public class FriendshipServiceTest {
     @Before
     public void setup() throws Exception {
         friendshipService = new FriendshipService(dataSource);
-        userDAO = new UserDAO(dataSource);
+        userDAO = new UserDAOImpl(dataSource);
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {

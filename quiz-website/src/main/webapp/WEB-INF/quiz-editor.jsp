@@ -12,6 +12,8 @@
         return;
     }
     
+    boolean isAdmin = user.isAdmin();
+    
     Quiz quiz = (Quiz) request.getAttribute("quiz");
     List<Question> questions = (List<Question>) request.getAttribute("questions");
     List<Category> categories = (List<Category>) request.getAttribute("categories");
@@ -177,6 +179,9 @@
         <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
         <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
         <a href="${pageContext.request.contextPath}/history">📊 History</a>
+        <% if (isAdmin) { %>
+        <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
+        <% } %>
     </div>
 
     <div class="main-content">

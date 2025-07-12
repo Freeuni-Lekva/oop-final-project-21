@@ -1,20 +1,19 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.DAO.MessageDAO;
+import com.freeuni.quiz.DAO.impl.MessageDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Message;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MessageService {
-    private final MessageDAO messageDAO;
+    private final MessageDAOImpl messageDAO;
     private final UserService userService;
 
     public MessageService(DataSource dataSource) {
-        this.messageDAO = new MessageDAO(dataSource);
+        this.messageDAO = new MessageDAOImpl(dataSource);
         this.userService = new UserService(dataSource);
     }
 

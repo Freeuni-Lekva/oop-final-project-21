@@ -180,6 +180,7 @@
     <div class="username"><%= user.getUserName() %></div>
 
     <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+    <a href="#" onclick="showAnnouncements()">📢 Announcements</a>
     <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
     <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
     <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>

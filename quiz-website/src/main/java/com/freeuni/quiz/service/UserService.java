@@ -1,6 +1,7 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.bean.User;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.converter.UserConverter;
@@ -22,7 +23,7 @@ public class UserService {
     private final DataSource dataSource;
 
     public UserService(DataSource dataSource) {
-        this.userDAO = new UserDAO(dataSource);
+        this.userDAO = new UserDAOImpl(dataSource);
         this.dataSource = dataSource;
     }
 

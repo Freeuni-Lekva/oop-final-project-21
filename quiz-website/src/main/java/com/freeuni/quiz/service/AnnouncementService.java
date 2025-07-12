@@ -2,6 +2,7 @@ package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.DAO.AnnouncementDAO;
 import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.DAO.impl.AnnouncementDAOImpl;
 import com.freeuni.quiz.DTO.AnnouncementDTO;
 import com.freeuni.quiz.bean.Announcement;
@@ -18,7 +19,7 @@ public class AnnouncementService {
 
     public AnnouncementService(DataSource dataSource) {
         this.announcementDAO = new AnnouncementDAOImpl(dataSource);
-        this.userDAO = new UserDAO(dataSource);
+        this.userDAO = new UserDAOImpl(dataSource);
     }
 
     public boolean createAnnouncement(String title, String content, Integer authorId) throws SQLException {

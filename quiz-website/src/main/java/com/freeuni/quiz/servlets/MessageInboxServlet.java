@@ -1,6 +1,5 @@
 package com.freeuni.quiz.servlets;
 
-import com.freeuni.quiz.DAO.MessageDAO;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Message;
 import com.freeuni.quiz.service.MessageService;
@@ -14,7 +13,6 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 @WebServlet("/inbox")
 public class MessageInboxServlet extends HttpServlet {

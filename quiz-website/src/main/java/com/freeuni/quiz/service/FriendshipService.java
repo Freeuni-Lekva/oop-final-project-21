@@ -1,6 +1,6 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.DAO.FriendshipDAO;
+import com.freeuni.quiz.DAO.impl.FriendshipDAOImpl;
 import com.freeuni.quiz.bean.Friendship;
 
 import javax.sql.DataSource;
@@ -11,10 +11,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FriendshipService {
-    private final FriendshipDAO friendshipDAO;
+    private final FriendshipDAOImpl friendshipDAOImpl;
 
     public FriendshipService(DataSource dataSource) {
-        this.friendshipDAO = new FriendshipDAO(dataSource);
+        this.friendshipDAOImpl = new FriendshipDAOImpl(dataSource);
     }
 
     public boolean addFriendship(int senderId, int receiverId) throws SQLException {
@@ -22,27 +22,27 @@ public class FriendshipService {
         if (areFriends(senderId, receiverId)) return false;
 
         Friendship friendship = new Friendship(senderId, receiverId);
-        return friendshipDAO.addFriendship(friendship);
+        return friendshipDAOImpl.addFriendship(friendship);
     }
 
     public boolean removeFriendshipByUserIds(int userId1, int userId2) throws SQLException {
-        Integer friendshipId = friendshipDAO.findFriendshipId(userId1, userId2);
+        Integer friendshipId = friendshipDAOImpl.findFriendshipId(userId1, userId2);
         if (friendshipId != null) {
-            return friendshipDAO.deleteFriendship(friendshipId);
+            return friendshipDAOImpl.deleteFriendship(friendshipId);
         }
         return false;
     }
 
     public List<Friendship> getAllFriendships() throws SQLException {
-        return friendshipDAO.findAll();
+        return friendshipDAOImpl.findAll();
     }
 
     public List<Integer> getFriendsOfUser(int userId) throws SQLException {
-        return friendshipDAO.findFriendIdsByUserId(userId);
+        return friendshipDAOImpl.findFriendIdsByUserId(userId);
     }
 
     public boolean areFriends(int userId1, int userId2) throws SQLException {
-        return friendshipDAO.exists(userId1, userId2);
+        return friendshipDAOImpl.exists(userId1, userId2);
     }
 
     public List<Integer> getMutualFriends(int userId1, int userId2) throws SQLException {

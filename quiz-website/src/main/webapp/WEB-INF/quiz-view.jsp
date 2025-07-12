@@ -9,6 +9,8 @@
         response.sendRedirect("login.jsp");
         return;
     }
+    
+    boolean isAdmin = user.isAdmin();
 
     Quiz quiz = (Quiz) request.getAttribute("quiz");
     Integer totalQuestions = (Integer) request.getAttribute("totalQuestions");
@@ -84,6 +86,9 @@
     <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
     <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
     <a href="${pageContext.request.contextPath}/history">📊 History</a>
+    <% if (isAdmin) { %>
+    <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
+    <% } %>
 </div>
 
 <div class="main-content">
