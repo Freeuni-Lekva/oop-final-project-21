@@ -1,6 +1,6 @@
 package com.freeuni.quiz.service;
 
-import com.freeuni.quiz.DAO.FriendshipRequestDAO;
+import com.freeuni.quiz.DAO.impl.FriendshipRequestDAOImpl;
 import com.freeuni.quiz.bean.FriendshipRequest;
 
 import javax.sql.DataSource;
@@ -8,10 +8,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class FriendshipRequestService {
-    private final FriendshipRequestDAO requestDAO;
+    private final FriendshipRequestDAOImpl requestDAO;
 
     public FriendshipRequestService(DataSource dataSource) {
-        this.requestDAO = new FriendshipRequestDAO(dataSource);
+        this.requestDAO = new FriendshipRequestDAOImpl(dataSource);
     }
 
     public boolean sendRequest(int senderId, int receiverId) throws SQLException {

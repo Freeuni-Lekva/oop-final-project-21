@@ -1,6 +1,7 @@
 package com.freeuni.quiz.service;
 
 import com.freeuni.quiz.DAO.AchievementDAO;
+import com.freeuni.quiz.DAO.impl.AchievementDAOImpl;
 import com.freeuni.quiz.bean.Achievement;
 import com.freeuni.quiz.bean.UserAchievement;
 
@@ -14,7 +15,7 @@ public class AchievementService {
     private final List<AchievementCriteria> criteriaList;
 
     public AchievementService(DataSource dataSource) {
-        this.achievementDAO = new AchievementDAO(dataSource);
+        this.achievementDAO = new AchievementDAOImpl(dataSource);
         this.criteriaList = List.of(
                 new AmateurAuthorCriteria(dataSource),
                 new ProlificAuthorCriteria(dataSource),

@@ -2,7 +2,9 @@
 <%@ page import="com.freeuni.quiz.DTO.UserDTO" %>
 <%
   UserDTO user = (UserDTO) request.getAttribute("user");
+  UserDTO currentUser = (session != null) ? (UserDTO) session.getAttribute("user") : null;
   boolean isOwner = Boolean.TRUE.equals(request.getAttribute("isOwner"));
+  boolean isAdmin = currentUser != null && currentUser.isAdmin();
 %>
 <!DOCTYPE html>
 <html>
@@ -13,6 +15,47 @@
     body {
       font-family: Arial, sans-serif;
       background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    .sidebar {
+      width: 220px;
+      background-color: #240955;
+      color: white;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 20px 10px;
+    }
+    .sidebar img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: block;
+      margin: 0 auto 10px;
+      object-fit: cover;
+      background-color: #ccc;
+    }
+    .sidebar .username {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 10px 15px;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .sidebar a:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    .main-content {
+      margin-left: 240px;
       padding: 2rem;
     }
     .profile-container {
@@ -51,6 +94,33 @@
   </style>
 </head>
 <body>
+<% if (currentUser != null) { %>
+<div class="sidebar">
+  <% if (currentUser.getImageURL() != null && !currentUser.getImageURL().isEmpty()) { %>
+  <img src="<%= currentUser.getImageURL() %>" alt="Profile Image">
+  <% } else { %>
+  <img src="https://via.placeholder.com/100" alt="No Image">
+  <% } %>
+  <div class="username"><%= currentUser.getUserName() %></div>
+  
+  <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+  <a href="#" onclick="showAnnouncements()">📢 Announcements</a>
+  <a href="${pageContext.request.contextPath}/profile" style="background-color: rgba(255, 255, 255, 0.2);">👤 Profile</a>
+  <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
+  <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
+  <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
+  <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
+  <a href="${pageContext.request.contextPath}/achievements">🏆 Achievements</a>
+  <a href="${pageContext.request.contextPath}/inbox">💬 Messages</a>
+  <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
+  <a href="${pageContext.request.contextPath}/history">📊 History</a>
+  <% if (isAdmin) { %>
+  <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
+  <% } %>
+</div>
+<% } %>
+
+<div class="main-content">
 <div class="profile-container">
   <% if (user.getImageURL() != null && !user.getImageURL().isEmpty()) { %>
   <img class="profile-image" src="<%= user.getImageURL() %>" alt="Profile Image" />
@@ -98,6 +168,7 @@
     <span class="status-message error">You must be logged in to send friend requests.</span>
     <% } %>
   </div>
+</div>
 </div>
 <script>
   window.contextPath = '<%= request.getContextPath() %>';

@@ -1,8 +1,8 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.User;
-import com.freeuni.quiz.DAO.UserDAO;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,7 +50,7 @@ public class UserDAOTest {
 
     @Before
     public void setUp() throws SQLException {
-        userDAO = new UserDAO(basicDataSource);
+        userDAO = new UserDAOImpl(basicDataSource);
 
         // Clear users table before each test
         try (Connection connection = basicDataSource.getConnection();

@@ -1,6 +1,8 @@
 package com.freeuni.quiz.service;
 import com.freeuni.quiz.DAO.MessageDAO;
 import com.freeuni.quiz.DAO.UserDAO;
+import com.freeuni.quiz.DAO.impl.MessageDAOImpl;
+import com.freeuni.quiz.DAO.impl.UserDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Message;
 import com.freeuni.quiz.bean.User;
@@ -64,8 +66,8 @@ public class MessageServiceTest {
             stmt.execute("DELETE FROM users");
         }
 
-        userDAO = new UserDAO(dataSource);
-        messageDAO = new MessageDAO(dataSource);
+        userDAO = new UserDAOImpl(dataSource);
+        messageDAO = new MessageDAOImpl(dataSource);
         messageService = new MessageService(dataSource);
     }
     @Test

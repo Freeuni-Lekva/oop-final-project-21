@@ -1,5 +1,6 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DAO.impl.AchievementDAOImpl;
 import com.freeuni.quiz.bean.Achievement;
 import com.freeuni.quiz.bean.UserAchievement;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -57,7 +58,7 @@ public class AchievementDAOTest {
 
     @Before
     public void setUp() throws SQLException {
-        achievementDAO = new AchievementDAO(dataSource);
+        achievementDAO = new AchievementDAOImpl(dataSource);
         // Clear data before each test
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {

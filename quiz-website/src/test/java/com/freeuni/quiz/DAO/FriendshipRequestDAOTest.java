@@ -1,8 +1,8 @@
 package com.freeuni.quiz.DAO;
 
+import com.freeuni.quiz.DAO.impl.FriendshipRequestDAOImpl;
 import com.freeuni.quiz.bean.FriendshipRequest;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 public class FriendshipRequestDAOTest {
 
     private static BasicDataSource dataSource;
-    private FriendshipRequestDAO dao;
+    private FriendshipRequestDAOImpl dao;
 
     @BeforeClass
     public static void initDb() throws SQLException {
@@ -38,7 +38,7 @@ public class FriendshipRequestDAOTest {
 
     @Before
     public void setUp() throws SQLException {
-        dao = new FriendshipRequestDAO(dataSource);
+        dao = new FriendshipRequestDAOImpl(dataSource);
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {

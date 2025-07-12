@@ -116,6 +116,8 @@
     response.sendRedirect("login.jsp");
     return;
   }
+  
+  boolean isAdmin = currentUser.isAdmin();
 %>
 
 <div class="sidebar">
@@ -127,15 +129,20 @@
   <div class="username"><%= currentUser.getUserName() %></div>
   
   <a href="${pageContext.request.contextPath}/home">🏠 Home</a>
+  <a href="#" onclick="showAnnouncements()">📢 Announcements</a>
   <a href="${pageContext.request.contextPath}/profile">👤 Profile</a>
   <a href="${pageContext.request.contextPath}/friendshipRequests">👋 Friend Requests</a>
   <a href="${pageContext.request.contextPath}/quiz-browser">🔍 Browse Quizzes</a>
   <a href="${pageContext.request.contextPath}/quiz-manager">📊 My Quizzes</a>
   <a href="${pageContext.request.contextPath}/quiz-creator">➕ Create Quiz</a>
-    <a href="${pageContext.request.contextPath}/achievements">🏆 Achievements</a>
+  <a href="${pageContext.request.contextPath}/achievements">🏆 Achievements</a>
   <a href="${pageContext.request.contextPath}/inbox" style="background-color: rgba(255, 255, 255, 0.2);">💬 Messages</a>
   <a href="${pageContext.request.contextPath}/challenges">🎯 Challenges</a>
-    <a href="${pageContext.request.contextPath}/history">📊 History</a>
+  <a href="${pageContext.request.contextPath}/history">📊 History</a>
+  <% if (isAdmin) { %>
+  <a href="${pageContext.request.contextPath}/admin">🛠️ Admin Panel</a>
+  <% } %>
+</div>
 
 <div class="main-content">
   <div class="inbox-container">

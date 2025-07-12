@@ -1,6 +1,6 @@
 package com.freeuni.quiz.servlets;
 
-import com.freeuni.quiz.DAO.MessageDAO;
+import com.freeuni.quiz.DAO.impl.MessageDAOImpl;
 import com.freeuni.quiz.DTO.UserDTO;
 import com.freeuni.quiz.bean.Message;
 import com.freeuni.quiz.util.LocalDateTimeAdapter;
@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 
 @WebServlet("/sendMessage")
 public class SendMessageServlet extends HttpServlet {
-    private MessageDAO messageDAO;
+    private MessageDAOImpl messageDAO;
 
     @Override
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
-        messageDAO = new MessageDAO(dataSource);
+        messageDAO = new MessageDAOImpl(dataSource);
     }
 
     @Override
